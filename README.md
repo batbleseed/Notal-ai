@@ -1,7 +1,7 @@
 # Notal AI
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/batbleseed/Notal-ai/main/logo.png" alt="Notal AI Logo" width="200">
+  <img src="logo.png" alt="Notal AI Logo" width="200">
   <br>
   <strong>Your All-in-One AI Platform</strong>
   <br>
