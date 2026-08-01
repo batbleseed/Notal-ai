@@ -1,7 +1,7 @@
 # Notal AI
 
 <div align="center">
-  <img src="logo.png" alt="Notal AI Logo" width="200">
+  <img src="icon.png" alt="Notal AI Logo" width="200">
   <br>
   <strong>Your All-in-One AI Platform</strong>
   <br>
@@ -153,7 +153,7 @@ Notal-ai/
 ├── studio.html          # Main application
 ├── chat.html            # Simple chat interface
 ├── README.md           # This file
-├── logo.png            # Logo image
+├── icon.png            # Logo image (local)
 └── .github/
     └── pages/
         └── index.html  # GitHub Pages config
@@ -362,6 +362,10 @@ SOFTWARE.
 ---
 
 <div align="center">
+  <sub>Built with ❤️ by the Notal AI team</sub>
+  <br>
+  <sub>⭐ If you like this project, give it a star on GitHub! ⭐</sub>
+</div>
   <sub>Built with ❤️ by the Notal AI team</sub>
   <br>
   <sub>⭐ If you like this project, give it a star on GitHub! ⭐</sub>
