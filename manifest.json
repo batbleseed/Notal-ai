@@ -1,7 +1,8 @@
 {
   "name": "Notal AI",
   "short_name": "Notal",
-  "start_url": "/notal-ai/chat.html",
+  "start_url": "/Notal-ai/chat.html",
+  "scope": "/Notal-ai/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#000000",
