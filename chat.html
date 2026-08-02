@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <!-- PWA Meta Tags -->
-<meta name="application-name" content="Notal AI">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Notal AI">
-<meta name="theme-color" content="#000000">
-<link rel="manifest" href="manifest.json">
+  <!-- PWA Meta Tags -->
+  <meta name="application-name" content="Notal AI">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Notal AI">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <title>Notal AI • Chat</title>
@@ -15,30 +15,169 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     :root {
-      --sidebar-width: 260px; --preview-width: 450px; --header-height: 52px;
-      --bg: #ffffff; --bg2: #f7f7f8; --bg-sidebar: #f9fafb; --text: #1a1a1a;
-      --text2: #6b7280; --border: #e5e5e5; --accent: #000000; --accent-hover: #333333;
-      --bubble-user: #000000; --bubble-ai: #ffffff; --radius: 0.85rem;
-      --shadow: 0 0 15px rgba(0,0,0,0.05);
+      --sidebar-width: 268px; --preview-width: 450px; --header-height: 54px;
+      --bg: #ffffff; --bg2: #f2f2f2; --bg-sidebar: #f9f9f9; --bg-hover: #ececec;
+      --text: #0d0d0d; --text2: #8e8ea0; --border: #ececec; --border-soft: #f0f0f0;
+      --accent: #0d0d0d; --accent-hover: #2b2b2b; --accent-contrast: #ffffff;
+      --bubble-user: #f4f4f4; --bubble-user-text: #0d0d0d; --radius: 0.85rem;
+      --shadow: 0 2px 10px rgba(0,0,0,0.04);
+      --composer-shadow: 0 4px 22px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.045);
+      --cursor-color: #000;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     .theme-dark {
-      --bg: #1a1a1a; --bg2: #2d2d2d; --bg-sidebar: #252525; --text: #ececec;
-      --text2: #999; --border: #3a3a3a; --accent: #ffffff; --accent-hover: #cccccc;
-      --bubble-user: #ffffff; --bubble-ai: #2d2d2d;
+      --bg: #212121; --bg2: #2a2a2a; --bg-sidebar: #181818; --bg-hover: #2f2f2f;
+      --text: #ececec; --text2: #9b9b9b; --border: #313131; --border-soft: #2a2a2a;
+      --accent: #ececec; --accent-hover: #d4d4d4; --accent-contrast: #171717;
+      --bubble-user: #323232; --bubble-user-text: #ececec;
+      --shadow: 0 2px 10px rgba(0,0,0,0.3);
+      --composer-shadow: 0 4px 22px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+      --cursor-color: #fff;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-    .theme-dark ::-webkit-scrollbar-thumb { background: #555; }
-    .theme-dark ::-webkit-scrollbar-thumb:hover { background: #777; }
+    .theme-dark ::-webkit-scrollbar-thumb { background: #4a4a4a; }
+    .theme-dark ::-webkit-scrollbar-thumb:hover { background: #5c5c5c; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-family: var(--font-sans);
       background: var(--bg); height: 100vh; width: 100vw; overflow: hidden;
-      display: flex; color: var(--text); transition: background 0.3s, color 0.3s;
+      display: flex; color: var(--text); transition: background 0.25s, color 0.25s;
+      font-size: 15px;
     }
+    
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+    .typing-indicator span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text2);
+      animation: typingDot 1.4s infinite both;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingDot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    
+    .thinking-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s;
+      margin-bottom: 0.3rem;
+    }
+    .thinking-toggle-btn:hover {
+      background: var(--bg2);
+      color: var(--text);
+    }
+    .thinking-toggle-btn.active {
+      color: #f59e0b;
+    }
+    .thinking-content {
+      background: #fefce8;
+      border: 1px solid #fde68a;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      margin: 0.3rem 0;
+      font-size: 0.78rem;
+      color: #92400e;
+      line-height: 1.5;
+      display: none;
+      white-space: pre-wrap;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .thinking-content.visible { display: block; }
+    .thinking-content.streaming {
+      border-color: #fbbf24;
+      background: #fffbeb;
+    }
+    
+    .generated-image {
+      max-width: 100%;
+      border-radius: 0.5rem;
+      margin: 0.5rem 0;
+      border: 1px solid var(--border);
+    }
+    .image-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+    .image-loading i {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .browser-iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      margin: 0.5rem 0;
+      background: #fff;
+    }
+    .browser-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.5rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem 0.5rem 0 0;
+    }
+    .browser-toolbar input {
+      flex: 1;
+      border: none;
+      background: var(--bg);
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--text);
+    }
+    .browser-toolbar button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text2);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.3rem;
+    }
+    .browser-toolbar button:hover {
+      background: var(--border);
+    }
+    .browser-container {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+    
     .ai-bubble h1, .ai-bubble h2, .ai-bubble h3 { font-size: 1.1em; font-weight: 700; margin: 0.8em 0 0.3em; }
     .ai-bubble h1 { font-size: 1.3em; }
     .ai-bubble p { margin: 0.4em 0; }
@@ -60,93 +199,102 @@
     .code-actions button:hover { background: rgba(255,255,255,0.25); color: #fff; }
     .code-actions button.copied { background: #22c55e; border-color: #22c55e; color: #fff; }
     .code-actions button.run-btn { background: #3b82f6; border-color: #3b82f6; }
-    .model-select-trigger { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 1.5rem; cursor: pointer; font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
-    .model-select-trigger:hover { background: var(--bg2); }
-    .model-dropdown { position: absolute; bottom: calc(100% + 0.5rem); left: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.12); min-width: 260px; max-height: 350px; overflow-y: auto; z-index: 30; opacity: 0; visibility: hidden; transform: translateY(5px); transition: all 0.2s; }
+    .model-select-trigger { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.65rem; background: transparent; border: none; border-radius: 0.6rem; cursor: pointer; font-size: 0.98rem; font-weight: 600; white-space: nowrap; color: var(--text); letter-spacing: -0.01em; }
+    .model-select-trigger:hover { background: var(--bg-hover); }
+    .model-select-trigger i.fa-robot { display: none; }
+    .model-dropdown { position: absolute; top: calc(100% + 0.4rem); left: 0; bottom: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 0.9rem; box-shadow: 0 12px 34px rgba(0,0,0,0.14); min-width: 280px; max-height: 380px; overflow-y: auto; z-index: 30; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; padding: 0.35rem; }
     .model-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
-    .model-dropdown-header { padding: 0.5rem 0.8rem; font-size: 0.65rem; font-weight: 700; color: #999; text-transform: uppercase; }
-    .model-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.8rem; cursor: pointer; font-size: 0.82rem; }
-    .model-option:hover { background: var(--bg2); }
-    .model-option.selected { background: #f0f7ff; }
-    .sidebar { width: var(--sidebar-width); height: 100vh; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; transition: all 0.25s ease; z-index: 20; }
+    .model-dropdown-header { padding: 0.5rem 0.6rem 0.3rem; font-size: 0.65rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; }
+    .model-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.65rem; cursor: pointer; font-size: 0.82rem; border-radius: 0.6rem; color: var(--text); }
+    .model-option:hover { background: var(--bg-hover); }
+    .model-option.selected { background: var(--bg2); font-weight: 600; }
+    .sidebar { width: var(--sidebar-width); height: 100vh; background: var(--bg-sidebar); border-right: none; display: flex; flex-direction: column; flex-shrink: 0; transition: all 0.2s ease; z-index: 20; }
     .sidebar.closed { width: 0 !important; min-width: 0 !important; overflow: hidden; border-right: none; }
-    .sidebar-header { padding: 0.7rem 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); min-width: 240px; }
-    .sidebar-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem; }
-    .sidebar-logo-icon { width: 1.7rem; height: 1.7rem; background: var(--accent); color: var(--bg); border-radius: 0.45rem; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
-    .close-sidebar-btn { background: none; border: none; cursor: pointer; padding: 0.4rem; border-radius: 0.4rem; color: var(--text2); font-size: 1rem; }
-    .close-sidebar-btn:hover { background: var(--bg2); }
-    .new-chat-btn { width: calc(100% - 1rem); margin: 0.5rem auto; padding: 0.55rem; background: var(--accent); color: var(--bg); border: none; border-radius: 0.6rem; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; justify-content: center; }
-    .new-chat-btn:hover { background: var(--accent-hover); }
-    .chat-history { flex: 1; overflow-y: auto; padding: 0.4rem; min-width: 240px; }
-    .history-item { padding: 0.55rem 0.7rem; border-radius: 0.55rem; cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.1rem; }
-    .history-item:hover { background: var(--bg2); }
-    .history-item.active { background: var(--border); }
+    .sidebar-header { padding: 0.6rem 0.6rem 0.3rem; display: flex; align-items: center; justify-content: space-between; min-width: 240px; }
+    .sidebar-logo { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; font-size: 0.92rem; padding: 0.35rem 0.5rem; letter-spacing: -0.01em; }
+    .sidebar-logo-icon { width: 1.6rem; height: 1.6rem; background: var(--accent); color: var(--accent-contrast); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+    .close-sidebar-btn { background: none; border: none; cursor: pointer; padding: 0.45rem; border-radius: 0.5rem; color: var(--text2); font-size: 0.9rem; display: flex; }
+    .close-sidebar-btn:hover { background: var(--bg-hover); }
+    .new-chat-btn { width: calc(100% - 1.2rem); margin: 0.3rem 0.6rem 0.6rem; padding: 0.55rem 0.65rem; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.55rem; justify-content: flex-start; }
+    .new-chat-btn:hover { background: var(--bg-hover); }
+    .new-chat-btn i { font-size: 0.8rem; color: var(--text2); }
+    .chat-history { flex: 1; overflow-y: auto; padding: 0.2rem 0.6rem; min-width: 240px; }
+    .chat-history-label { font-size: 0.68rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; padding: 0.5rem 0.6rem 0.35rem; }
+    .history-item { padding: 0.5rem 0.65rem; border-radius: 0.6rem; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.05rem; color: var(--text); }
+    .history-item:hover { background: var(--bg-hover); }
+    .history-item.active { background: var(--bg-hover); font-weight: 500; }
     .history-item-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .history-item-actions { display: flex; gap: 0.15rem; opacity: 0; }
     .history-item:hover .history-item-actions { opacity: 1; }
-    .history-action-btn { background: none; border: none; cursor: pointer; padding: 0.2rem; font-size: 0.6rem; color: var(--text2); }
-    .sidebar-footer { padding: 0.6rem 0.75rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.4rem; min-width: 240px; }
-    .sidebar-user { display: flex; align-items: center; gap: 0.35rem; flex: 1; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 2rem; min-width: 0; position: relative; }
-    .sidebar-user:hover { background: var(--bg2); }
-    .sidebar-user img { width: 1.6rem; height: 1.6rem; border-radius: 50%; object-fit: cover; }
-    .sidebar-user-name { font-size: 0.72rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .signout-dropdown { position: absolute; bottom: 100%; left: 0; right: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0.6rem; box-shadow: 0 5px 20px rgba(0,0,0,0.15); padding: 0.3rem; display: none; z-index: 30; }
+    .history-action-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; font-size: 0.68rem; color: var(--text2); border-radius: 0.35rem; }
+    .history-action-btn:hover { color: #ef4444; }
+    .sidebar-footer { padding: 0.5rem 0.6rem; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: 0.4rem; min-width: 240px; }
+    .sidebar-user { display: flex; align-items: center; gap: 0.5rem; flex: 1; cursor: pointer; padding: 0.35rem 0.5rem; border-radius: 0.7rem; min-width: 0; position: relative; }
+    .sidebar-user:hover { background: var(--bg-hover); }
+    .sidebar-user img { width: 1.7rem; height: 1.7rem; border-radius: 50%; object-fit: cover; }
+    .sidebar-user-name { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .signout-dropdown { position: absolute; bottom: 100%; left: 0; right: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0.7rem; box-shadow: 0 8px 26px rgba(0,0,0,0.14); padding: 0.3rem; display: none; z-index: 30; margin-bottom: 0.3rem; }
     .signout-dropdown.show { display: block; }
-    .signout-btn { width: 100%; padding: 0.5rem; border: none; background: none; cursor: pointer; text-align: left; font-size: 0.8rem; color: #ef4444; border-radius: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+    .signout-btn { width: 100%; padding: 0.5rem 0.6rem; border: none; background: none; cursor: pointer; text-align: left; font-size: 0.8rem; color: #ef4444; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
     .signout-btn:hover { background: #fef2f2; }
-    .google-btn { display: flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 1.5rem; cursor: pointer; font-size: 0.72rem; font-weight: 500; flex: 1; justify-content: center; }
+    .google-btn { display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.6rem; background: transparent; border: 1px solid var(--border); border-radius: 0.7rem; cursor: pointer; font-size: 0.78rem; font-weight: 500; flex: 1; justify-content: center; color: var(--text); }
+    .google-btn:hover { background: var(--bg-hover); }
     .google-btn img { width: 0.9rem; height: 0.9rem; }
-    .settings-btn-circle { width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
-    .toggle-sidebar-btn { position: fixed; top: 50%; left: 0; transform: translateY(-50%); background: var(--accent); color: var(--bg); border: none; border-radius: 0 0.6rem 0.6rem 0; padding: 0.6rem 0.35rem; cursor: pointer; z-index: 25; display: none; font-size: 0.8rem; }
-    .main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-width: 0; }
-    .chat-header { height: var(--header-height); padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem; }
-    .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text); padding: 0.4rem; border-radius: 0.4rem; }
+    .settings-btn-circle { width: 2.1rem; height: 2.1rem; border-radius: 50%; background: transparent; color: var(--text2); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+    .settings-btn-circle:hover { background: var(--bg-hover); color: var(--text); }
+    .toggle-sidebar-btn { position: fixed; top: 0.75rem; left: 0.75rem; transform: none; background: var(--bg); color: var(--text2); border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.5rem 0.6rem; cursor: pointer; z-index: 25; display: none; font-size: 0.8rem; box-shadow: var(--shadow); }
+    .toggle-sidebar-btn:hover { color: var(--text); background: var(--bg-hover); }
+    .main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-width: 0; position: relative; }
+    .chat-header { height: var(--header-height); padding: 0 0.85rem; display: flex; align-items: center; justify-content: space-between; border-bottom: none; position: relative; z-index: 12; background: var(--bg); }
+    .brand { display: flex; align-items: center; gap: 0.4rem; }
+    .mobile-menu-btn { display: none; background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--text); padding: 0.45rem; border-radius: 0.5rem; }
+    .mobile-menu-btn:hover { background: var(--bg-hover); }
+    .header-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
     .connection-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; }
     .connection-dot.connected { background: #22c55e; }
-    .messages-container { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .message-row { display: flex; gap: 0.7rem; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .messages-container { flex: 1; overflow-y: auto; padding: 1.25rem 1rem 0.5rem; display: flex; flex-direction: column; gap: 1.4rem; align-items: center; }
+    .message-row { display: flex; gap: 0.85rem; animation: fadeIn 0.25s ease; width: 100%; max-width: 48rem; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .user-row { justify-content: flex-end; }
-    .message-content { max-width: 78%; }
-    .message-bubble { padding: 0.65rem 1rem; border-radius: 1rem; line-height: 1.55; font-size: 0.9rem; word-wrap: break-word; }
-    .ai-bubble { background: var(--bubble-ai); color: var(--text); border: 1px solid var(--border); border-radius: 0 1rem 1rem 1rem; }
-    .user-bubble { background: var(--bubble-user); color: var(--bg); border-radius: 1rem 0 1rem 1rem; }
-    .message-avatar { width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; overflow: hidden; }
-    .ai-avatar { background: #1a1a1a; color: #fff; }
-    .user-avatar { background: #e5e5e5; }
-    .upload-preview { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
-    .upload-preview img { max-width: 100px; max-height: 70px; border-radius: 0.5rem; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
-    .upload-preview .file-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 1rem; font-size: 0.7rem; }
-    .thinking-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; font-size: 0.8rem; color: var(--text2); cursor: pointer; user-select: none; }
-    .thinking-row:hover { color: var(--text); }
-    .thinking-content { background: #fefce8; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 0.6rem 0.8rem; margin-top: 0.3rem; font-size: 0.78rem; color: #92400e; line-height: 1.5; display: none; }
-    .thinking-content.visible { display: block; }
-    .input-container { padding: 0.6rem 1rem 0.8rem; }
-    .input-wrapper { display: flex; align-items: center; gap: 0.4rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 1.5rem; padding: 0.25rem 0.25rem 0.25rem 1rem; transition: all 0.15s; }
-    .input-wrapper:focus-within { border-color: #999; background: var(--bg); }
-    #userInput { flex: 1; border: none; background: transparent; padding: 0.5rem 0; font-size: 0.9rem; outline: none; color: var(--text); }
-    #userInput::placeholder { color: #aaa; }
-    .upload-btn, .send-btn, .stop-btn { width: 2rem; height: 2rem; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
-    .upload-btn { background: transparent; color: var(--text2); }
-    .upload-btn:hover { background: var(--border); }
-    .send-btn { background: var(--accent); color: var(--bg); }
+    .message-content { max-width: 100%; min-width: 0; }
+    .user-row .message-content { max-width: 82%; }
+    .message-bubble { line-height: 1.7; font-size: 0.95rem; word-wrap: break-word; }
+    .ai-bubble { background: transparent; color: var(--text); border: none; border-radius: 0; padding: 0.15rem 0; }
+    .user-bubble { background: var(--bubble-user); color: var(--bubble-user-text); border-radius: 1.3rem; padding: 0.65rem 1.05rem; }
+    .message-avatar { width: 1.75rem; height: 1.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; overflow: hidden; margin-top: 0.1rem; }
+    .ai-avatar { background: var(--accent); color: var(--accent-contrast); }
+    .user-row .message-avatar { display: none; }
+    .upload-preview { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; justify-content: flex-end; }
+    .upload-preview img { max-width: 100px; max-height: 70px; border-radius: 0.6rem; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+    .upload-preview .file-tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 1rem; font-size: 0.72rem; }
+    .input-container { padding: 0.5rem 1rem 1.1rem; display: flex; justify-content: center; }
+    .input-wrapper { display: flex; flex-direction: column; align-items: stretch; gap: 0.1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 1.6rem; padding: 0.6rem 0.65rem 0.5rem 0.9rem; box-shadow: var(--composer-shadow); width: 100%; max-width: 48rem; transition: box-shadow 0.15s; }
+    .input-wrapper:focus-within { box-shadow: var(--composer-shadow), 0 0 0 2px rgba(13,13,13,0.06); }
+    .theme-dark .input-wrapper:focus-within { box-shadow: var(--composer-shadow), 0 0 0 2px rgba(255,255,255,0.08); }
+    .input-row-top { display: flex; align-items: flex-end; gap: 0.5rem; }
+    #userInput { flex: 1; border: none; background: transparent; padding: 0.35rem 0; font-size: 0.95rem; outline: none; color: var(--text); max-height: 9rem; resize: none; font-family: inherit; line-height: 1.5; overflow-y: auto; }
+    #userInput::placeholder { color: var(--text2); }
+    .input-row-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 0.15rem; }
+    .upload-btn, .send-btn, .stop-btn { width: 2.05rem; height: 2.05rem; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+    .upload-btn { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+    .upload-btn:hover { background: var(--bg-hover); color: var(--text); }
+    .send-btn { background: var(--accent); color: var(--accent-contrast); }
     .send-btn:hover { background: var(--accent-hover); }
-    .send-btn:disabled { opacity: 0.4; }
-    .stop-btn { background: #ef4444; color: #fff; display: none; animation: pulse 1.5s infinite; }
+    .send-btn:disabled { opacity: 0.35; cursor: default; }
+    .stop-btn { background: var(--text); color: var(--bg); display: none; }
     .stop-btn.visible { display: flex; }
-    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
-    /* ChatGPT-style landing */
-    .landing-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
-    .landing-logo { font-size: 3rem; margin-bottom: 0.5rem; }
-    .landing-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .landing-subtitle { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
-    .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; max-width: 700px; width: 100%; }
-    .suggestion-card { padding: 1rem; border: 1px solid var(--border); border-radius: 0.75rem; cursor: pointer; text-align: left; transition: all 0.2s; background: var(--bg); }
-    .suggestion-card:hover { border-color: #999; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .suggestion-card .s-icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
-    .suggestion-card .s-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
-    .suggestion-card .s-desc { font-size: 0.75rem; color: var(--text2); }
+    .stop-btn i { font-size: 0.65rem; }
+    .composer-hint { text-align: center; font-size: 0.7rem; color: var(--text2); margin-top: 0.55rem; }
+    .landing-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; width: 100%; }
+    .landing-logo { width: 3.1rem; height: 3.1rem; border-radius: 0.9rem; background: var(--accent); color: var(--accent-contrast); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1.1rem; }
+    .landing-title { font-size: 1.7rem; font-weight: 600; margin-bottom: 0.4rem; letter-spacing: -0.015em; }
+    .landing-subtitle { color: var(--text2); margin-bottom: 1.8rem; font-size: 0.9rem; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 0.55rem; max-width: 620px; width: 100%; justify-content: center; }
+    .suggestion-card { display: flex; align-items: center; gap: 0.45rem; padding: 0.55rem 0.95rem; border: 1px solid var(--border); border-radius: 1.4rem; cursor: pointer; text-align: left; transition: all 0.15s; background: var(--bg); }
+    .suggestion-card:hover { background: var(--bg-hover); }
+    .suggestion-card .s-icon { font-size: 0.9rem; }
+    .suggestion-card .s-title { font-weight: 500; font-size: 0.82rem; }
+    .suggestion-card .s-desc { display: none; }
     .preview-panel { width: var(--preview-width); height: 100vh; background: #fff; border-left: 1px solid var(--border); display: none; flex-direction: column; flex-shrink: 0; }
     .preview-panel.visible { display: flex; }
     .preview-toolbar { padding: 0.5rem 0.75rem; background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; }
@@ -187,9 +335,10 @@
       .sidebar { position: fixed; left: 0; top: 0; height: 100dvh; transform: translateX(-100%); z-index: 20; }
       .sidebar.open { transform: translateX(0); }
       .mobile-menu-btn { display: flex; }
-      .message-content { max-width: 88%; }
+      .user-row .message-content { max-width: 90%; }
       .preview-panel { position: fixed; right: 0; top: 0; height: 100dvh; z-index: 18; }
-      .suggestions { grid-template-columns: 1fr; }
+      .suggestions { flex-direction: column; align-items: stretch; }
+      .suggestion-card { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -212,8 +361,8 @@
   <button class="toggle-sidebar-btn" id="toggleSidebarBtn"><i class="fas fa-chevron-right"></i></button>
 
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo"><div class="sidebar-logo-icon">⧩</div>Notal AI</div><button class="close-sidebar-btn" id="closeSidebarBtn"><i class="fas fa-times"></i></button></div>
-    <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> New Chat</button>
+    <div class="sidebar-header"><div class="sidebar-logo"><div class="sidebar-logo-icon">⧩</div>Notal AI</div><button class="close-sidebar-btn" id="closeSidebarBtn"><i class="fas fa-angles-left"></i></button></div>
+    <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-pen-to-square"></i> New chat</button>
     <div class="chat-history" id="chatHistory"></div>
     <div class="sidebar-footer">
       <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Sign in</button></div>
@@ -227,20 +376,30 @@
 
   <div class="main-content">
     <header class="chat-header">
-      <div class="brand"><button class="mobile-menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>Notal AI</div>
-      <span class="connection-dot" id="connectionDot" style="margin-left:auto;" title="API status"></span>
+      <div class="brand">
+        <button class="mobile-menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>
+        <div style="position:relative;">
+          <div class="model-select-trigger" id="modelTrigger"><i class="fas fa-robot"></i> <span id="selectedModelName">GPT-4o</span> <i class="fas fa-chevron-down" style="font-size:0.55rem;color:var(--text2);"></i></div>
+          <div class="model-dropdown" id="modelDropdown"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="connection-dot" id="connectionDot" title="API status"></span>
+      </div>
     </header>
     <div class="messages-container" id="messagesContainer"></div>
     <div class="input-container">
-      <div class="input-wrapper" style="position:relative;">
-        <div style="position:relative;">
-          <div class="model-select-trigger" id="modelTrigger"><i class="fas fa-robot"></i> <span id="selectedModelName">GPT-4o</span> <i class="fas fa-chevron-down" style="font-size:0.55rem;"></i></div>
-          <div class="model-dropdown" id="modelDropdown"></div>
+      <div class="input-wrapper">
+        <div class="input-row-top">
+          <textarea id="userInput" placeholder="Message Notal AI..." rows="1" autofocus></textarea>
         </div>
-        <input type="text" id="userInput" placeholder="Message Notal AI..." autofocus>
-        <button class="upload-btn" id="uploadBtn"><i class="fas fa-paperclip"></i></button>
-        <button class="stop-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
-        <button class="send-btn" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
+        <div class="input-row-bottom">
+          <button class="upload-btn" id="uploadBtn"><i class="fas fa-paperclip"></i></button>
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <button class="stop-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
+            <button class="send-btn" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -257,31 +416,75 @@
   </div>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script>
+    <script>
     (function() {
+      // ============================================================
+      //  NOTAL AI — Cloudflare Worker Integration
+      // ============================================================
+
+      // 🔥 REPLACE WITH YOUR CLOUDFLARE WORKER URL
+      const WORKER_URL = 'https://notal-ai-backend.hotfinixbrave.workers.dev';
+
       const GOOGLE_CLIENT_ID = '524364273952-7gqtr9pdujlahhbt3b35p6p9be369gh0.apps.googleusercontent.com';
       const providers = [
-        { id: 'openrouter', name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1/chat/completions', keyHint: 'sk-or-v1-...', needsProxy: false },
-        { id: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1/chat/completions', keyHint: 'sk-...', needsProxy: false },
-        { id: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', keyHint: 'sk-proj-...', needsProxy: true },
-        { id: 'google', name: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent', keyHint: 'AIza...', needsProxy: true },
+        { id: 'openrouter', name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1/chat/completions', keyHint: 'sk-or-v1-...', needsProxy: false, vision: true, imageGen: true },
+        { id: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1/chat/completions', keyHint: 'sk-...', needsProxy: false, vision: false, imageGen: false },
+        { id: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', keyHint: 'sk-proj-...', needsProxy: true, vision: true, imageGen: true },
+        { id: 'google', name: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/', keyHint: 'AIza...', needsProxy: true, vision: true, imageGen: false },
       ];
+
       const allModels = [
-        { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'openai', icon: 'fa-brain', badge: 'Latest', thinking: false },
-        { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai', icon: 'fa-bolt', badge: 'Fast', thinking: false },
-        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'openrouter', icon: 'fa-feather', badge: 'Powerful', thinking: true },
-        { id: 'deepseek/deepseek-chat', name: 'DeepSeek V3', provider: 'deepseek', icon: 'fa-search', badge: 'Cheap', thinking: false },
-        { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', provider: 'deepseek', icon: 'fa-brain', badge: 'Reason', thinking: true },
-        { id: 'google/gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', icon: 'fa-gem', badge: 'Advanced', thinking: true },
-        { id: 'google/gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Speed', thinking: false },
-        { id: 'google/gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Free', thinking: false },
-        { id: 'meta-llama/llama-3.1-70b', name: 'Llama 3.1 70B', provider: 'openrouter', icon: 'fa-fire', badge: 'Open', thinking: false },
+        // OpenAI
+        { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', icon: 'fa-brain', badge: 'Vision', thinking: false, cost: 'high', vision: true },
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: true },
+        
+        // Claude (via OpenRouter)
+        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'openrouter', icon: 'fa-feather', badge: 'Vision', thinking: true, cost: 'high', vision: true },
+        
+        // Gemini - Native Google API
+        { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Latest', thinking: false, cost: 'low', vision: true },
+        { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Stable', thinking: false, cost: 'low', vision: true },
+        { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', provider: 'google', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: false },
+        { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', provider: 'google', icon: 'fa-gem', badge: 'Powerful', thinking: true, cost: 'medium', vision: true },
+        { id: 'gemini-3.1-flash', name: 'Gemini 3.1 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: true },
+        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Legacy', thinking: false, cost: 'low', vision: true },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', icon: 'fa-brain', badge: 'Legacy', thinking: true, cost: 'medium', vision: true },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Legacy', thinking: false, cost: 'low', vision: true },
+        
+        // DeepSeek - Native API (NOT OpenRouter)
+        { id: 'deepseek-chat', name: 'DeepSeek V3', provider: 'openrouter', icon: 'fa-search', badge: 'Cheap', thinking: false, cost: 'low', vision: false },
+        { id: 'deepseek-reasoner', name: 'DeepSeek R1', provider: 'deepseek', icon: 'fa-brain', badge: 'Reason', thinking: true, cost: 'medium', vision: false },
+        { id: 'deepseek-coder', name: 'DeepSeek Coder', provider: 'deepseek', icon: 'fa-code', badge: 'Coding', thinking: false, cost: 'low', vision: false },
+        { id: 'deepseek/deepseek-chat', name: 'DeepSeek V3 (OpenRouter)', provider: 'openrouter', icon: 'fa-search', badge: 'Cheap', thinking: false, cost: 'low', vision: false },
+{ id: 'deepseek/deepseek-r1', name: 'DeepSeek R1 (OpenRouter)', provider: 'openrouter', icon: 'fa-brain', badge: 'Reason', thinking: true, cost: 'medium', vision: false },
+        
+        // Mistral
+        { id: 'mistralai/mistral-large-2', name: 'Mistral Large 2', provider: 'openrouter', icon: 'fa-feather', badge: 'Smart', thinking: false, cost: 'medium', vision: true },
+        { id: 'mistralai/mistral-small', name: 'Mistral Small', provider: 'openrouter', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: false },
+        
+        // Meta Llama
+        { id: 'meta-llama/llama-3.2-90b-vision', name: 'Llama 3.2 90B Vision', provider: 'openrouter', icon: 'fa-eye', badge: 'Vision', thinking: false, cost: 'medium', vision: true },
+        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', provider: 'openrouter', icon: 'fa-brain', badge: 'Open', thinking: false, cost: 'medium', vision: false },
+        { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', provider: 'openrouter', icon: 'fa-bolt', badge: 'Light', thinking: false, cost: 'low', vision: false },
+        
+        // Qwen
+        { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', provider: 'openrouter', icon: 'fa-brain', badge: 'Powerful', thinking: false, cost: 'medium', vision: false },
+        { id: 'qwen/qwen-2.5-7b-instruct', name: 'Qwen 2.5 7B', provider: 'openrouter', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: false },
+        
+        // Image Generation Models
+        { id: 'dall-e-3', name: 'DALL-E 3', provider: 'openai', icon: 'fa-paintbrush', badge: 'Image Gen', thinking: false, cost: 'high', imageGen: true },
+        { id: 'dall-e-2', name: 'DALL-E 2', provider: 'openai', icon: 'fa-paintbrush', badge: 'Image Gen', thinking: false, cost: 'medium', imageGen: true },
+        { id: 'stabilityai/stable-diffusion-3.5', name: 'SD 3.5', provider: 'openrouter', icon: 'fa-paintbrush', badge: 'Image Gen', thinking: false, cost: 'medium', imageGen: true },
+        { id: 'stabilityai/stable-diffusion-xl', name: 'SDXL', provider: 'openrouter', icon: 'fa-paintbrush', badge: 'Image Gen', thinking: false, cost: 'low', imageGen: true },
+        { id: 'google/imagen-3', name: 'Imagen 3', provider: 'openrouter', icon: 'fa-paintbrush', badge: 'Image Gen', thinking: false, cost: 'medium', imageGen: true },
       ];
 
       let keys = {}, currentModel = allModels[0], chats = [], currentChatId = null, currentMessages = [];
       let isProcessing = false, proxyEnabled = false, proxyUrl = '', previewEnabled = true, systemPromptEnabled = true;
       let currentTheme = 'default', uploadedFiles = [], visitCount = 0, googleUser = null;
       let sidebarOpen = true, abortController = null, isLanding = true, previewContent = '';
+      let thinkingContent = '';
+      let streamAborted = false, activeThinkId = null;
 
       const $ = id => document.getElementById(id);
       const messagesContainer = $('messagesContainer');
@@ -385,32 +588,89 @@
       }
 
       function getApiConfig() {
-        for (const p of providers) {
-          if (keys[p.id]?.trim()) {
-            let url = p.baseUrl;
-            if (p.needsProxy) url = (proxyEnabled && proxyUrl?.trim()) ? proxyUrl.trim() + encodeURIComponent(url) : url;
-            const headers = { 'Content-Type': 'application/json' };
-            if (p.id === 'google') url = ((proxyEnabled && proxyUrl?.trim()) ? proxyUrl.trim() + encodeURIComponent(p.baseUrl) : p.baseUrl) + `?key=${keys[p.id].trim()}`;
-            else headers['Authorization'] = `Bearer ${keys[p.id].trim()}`;
-            if (p.id === 'openrouter') headers['HTTP-Referer'] = window.location.origin;
-            return { url, headers, isGoogle: p.id === 'google' };
-          }
-        }
-        return null;
+        return {
+          url: WORKER_URL,
+          headers: { 'Content-Type': 'application/json' },
+          isWorker: true,
+          isGoogle: false,
+          isDeepSeek: false
+        };
+      }
+
+      async function generateImage(prompt) {
+        const providerKey = keys[currentModel.provider];
+        if (!providerKey) throw new Error('No API key for ' + currentModel.provider);
+        
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: currentModel.provider,
+            model: currentModel.id,
+            prompt: prompt,
+            isImageGen: true,
+            apiKey: providerKey
+          })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Image generation failed');
+        return data.imageUrl;
+      }
+
+      async function analyzeImage(imageData, prompt) {
+        const providerKey = keys[currentModel.provider];
+        if (!providerKey) throw new Error('No API key for ' + currentModel.provider);
+        
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: currentModel.provider,
+            model: currentModel.id,
+            prompt: prompt || 'Describe this image in detail.',
+            imageData: imageData,
+            apiKey: providerKey
+          })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Vision analysis failed');
+        return data.response;
       }
 
       function initModelDropdown() {
-        modelDropdown.innerHTML = '<div class="model-dropdown-header">Models</div>';
+        const groups = {};
         allModels.forEach(m => {
-          const o = document.createElement('div');
-          o.className = `model-option ${m.id===currentModel.id?'selected':''}`;
-          o.innerHTML = `<i class="fas ${m.icon}" style="width:1.3rem;"></i>${m.name}<span style="font-size:0.6rem;background:#e5e7eb;padding:0.1rem 0.4rem;border-radius:0.8rem;margin-left:0.4rem;">${m.badge}</span>${m.id===currentModel.id?'<i class="fas fa-check" style="margin-left:auto;"></i>':''}`;
-          o.addEventListener('click', () => { currentModel = m; updateModelTrigger(); initModelDropdown(); modelDropdown.classList.remove('show'); saveState(); });
-          modelDropdown.appendChild(o);
+          const type = m.imageGen ? 'Image Generation' : m.vision ? 'Vision & Text' : 'Text';
+          const key = `${m.provider}-${type}`;
+          if (!groups[key]) groups[key] = { provider: m.provider, type: type, models: [] };
+          groups[key].models.push(m);
+        });
+        
+        modelDropdown.innerHTML = '<div class="model-dropdown-header">Models</div>';
+        Object.entries(groups).forEach(([key, group]) => {
+          const label = document.createElement('div');
+          label.style.cssText = 'padding:0.3rem 0.8rem;font-size:0.6rem;font-weight:700;color:#999;text-transform:uppercase;background:var(--bg2);';
+          label.textContent = `${group.provider.toUpperCase()} — ${group.type}`;
+          modelDropdown.appendChild(label);
+          
+          group.models.forEach(m => {
+            const o = document.createElement('div');
+            o.className = `model-option ${m.id===currentModel.id?'selected':''}`;
+            const costIcon = m.cost === 'low' ? '🟢' : m.cost === 'medium' ? '🟡' : '🔴';
+            const typeIcon = m.imageGen ? '🎨' : m.vision ? '👁️' : '💬';
+            o.innerHTML = `<i class="fas ${m.icon}" style="width:1.3rem;"></i>${m.name}<span style="font-size:0.55rem;background:#e5e7eb;padding:0.1rem 0.4rem;border-radius:0.8rem;margin-left:0.4rem;">${m.badge}</span><span style="margin-left:auto;font-size:0.6rem;">${typeIcon} ${costIcon}</span>${m.id===currentModel.id?'<i class="fas fa-check" style="margin-left:0.3rem;"></i>':''}`;
+            o.addEventListener('click', () => { currentModel = m; updateModelTrigger(); initModelDropdown(); modelDropdown.classList.remove('show'); saveState(); });
+            modelDropdown.appendChild(o);
+          });
         });
       }
 
-      function updateModelTrigger() { selectedModelName.textContent = currentModel.name; }
+      function updateModelTrigger() { 
+        const icon = currentModel.imageGen ? '🎨' : currentModel.vision ? '👁️' : '🤖';
+        selectedModelName.textContent = `${icon} ${currentModel.name}`; 
+      }
 
       function showLanding() {
         isLanding = true;
@@ -418,19 +678,19 @@
           <div class="landing-screen">
             <div class="landing-logo">⧩</div>
             <div class="landing-title">What can I help with?</div>
-            <div class="landing-subtitle">Ask anything, upload files, or try one of these</div>
+            <div class="landing-subtitle">Ask anything, upload images, generate art, or browse the web</div>
             <div class="suggestions">
-              <div class="suggestion-card" data-prompt="Write a Python function to sort a list of numbers">
+              <div class="suggestion-card" data-prompt="Generate an image of a futuristic city">
+                <div class="s-icon">🎨</div><div class="s-title">Generate Image</div><div class="s-desc">Create AI art</div>
+              </div>
+              <div class="suggestion-card" data-prompt="Browse https://example.com and summarize">
+                <div class="s-icon">🌐</div><div class="s-title">Browse Web</div><div class="s-desc">Visit any website</div>
+              </div>
+              <div class="suggestion-card" data-prompt="What's in this image?">
+                <div class="s-icon">👁️</div><div class="s-title">Vision</div><div class="s-desc">Upload and analyze images</div>
+              </div>
+              <div class="suggestion-card" data-prompt="Write a Python function to sort a list">
                 <div class="s-icon">💻</div><div class="s-title">Write Code</div><div class="s-desc">Generate code in any language</div>
-              </div>
-              <div class="suggestion-card" data-prompt="Explain how AI works in simple terms">
-                <div class="s-icon">🧠</div><div class="s-title">Explain Concepts</div><div class="s-desc">Learn something new today</div>
-              </div>
-              <div class="suggestion-card" data-prompt="Help me debug: my CSS is not centering my div">
-                <div class="s-icon">🐛</div><div class="s-title">Debug Issues</div><div class="s-desc">Fix errors in your code</div>
-              </div>
-              <div class="suggestion-card" data-prompt="Create an HTML landing page for a coffee shop">
-                <div class="s-icon">🎨</div><div class="s-title">Create Web Pages</div><div class="s-desc">Generate HTML with preview</div>
               </div>
             </div>
           </div>`;
@@ -472,28 +732,106 @@
         });
       }
 
-      function renderMessages() { messagesContainer.innerHTML = ''; currentMessages.forEach(m => appendMsg(m.content, m.role==='user', m.thinking, m.files)); messagesContainer.scrollTop = messagesContainer.scrollHeight; }
+      function renderMessages() { 
+        messagesContainer.innerHTML = ''; 
+        currentMessages.forEach(m => {
+          if (m.content) appendMsg(m.content, m.role==='user', m.thinking, m.files, m.imageGen);
+        });
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; 
+      }
 
-      function appendMsg(content, isUser, thinking = null, attachedFiles = null) {
+      function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function createMiniBrowser(url) {
+        const container = document.createElement('div');
+        container.className = 'browser-container';
+        container.innerHTML = `
+          <div class="browser-toolbar">
+            <button class="browser-back"><i class="fas fa-arrow-left"></i></button>
+            <button class="browser-forward"><i class="fas fa-arrow-right"></i></button>
+            <button class="browser-refresh"><i class="fas fa-redo"></i></button>
+            <input class="browser-url" value="${escapeHtml(url)}" placeholder="Enter URL...">
+            <button class="browser-go"><i class="fas fa-arrow-right"></i></button>
+          </div>
+          <iframe class="browser-iframe" src="${escapeHtml(url)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+        `;
+        
+        const iframe = container.querySelector('.browser-iframe');
+        const urlInput = container.querySelector('.browser-url');
+        
+        container.querySelector('.browser-go').addEventListener('click', () => {
+          let val = urlInput.value.trim();
+          if (!val.startsWith('http://') && !val.startsWith('https://')) val = 'https://' + val;
+          iframe.src = val;
+        });
+        
+        container.querySelector('.browser-url').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') container.querySelector('.browser-go').click();
+        });
+        
+        container.querySelector('.browser-refresh').addEventListener('click', () => {
+          iframe.src = iframe.src;
+        });
+        
+        container.querySelector('.browser-back').addEventListener('click', () => {
+          try { iframe.contentWindow?.history?.back(); } catch(e) {}
+        });
+        
+        container.querySelector('.browser-forward').addEventListener('click', () => {
+          try { iframe.contentWindow?.history?.forward(); } catch(e) {}
+        });
+        
+        return container;
+      }
+
+      function appendMsg(content, isUser, thinking = null, attachedFiles = null, imageGen = null) {
         const row = document.createElement('div');
         row.className = `message-row ${isUser ? 'user-row' : ''}`;
         if (!isUser) {
           let th = '';
-          if (thinking) th = `<div class="thinking-row" onclick="this.nextElementSibling.classList.toggle('visible'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-right');"><i class="fas fa-chevron-right"></i> 💭 Thinking...</div><div class="thinking-content">${thinking}</div>`;
+          if (thinking) {
+            const thinkId = 'think-' + Date.now();
+            th = `<button class="thinking-toggle-btn" onclick="document.getElementById('${thinkId}').classList.toggle('visible')"><i class="fas fa-brain"></i> View thinking</button><div class="thinking-content" id="${thinkId}">${thinking}</div>`;
+          }
+          
+          let extraContent = '';
+          if (imageGen) {
+            extraContent = `<div class="image-loading"><i class="fas fa-spinner"></i> Generating image...</div>`;
+          }
+          
+          if (content.includes('[BROWSER]')) {
+            const url = content.match(/\[BROWSER\](.*?)\[\/BROWSER\]/);
+            if (url) {
+              const browserContainer = createMiniBrowser(url[1]);
+              extraContent += browserContainer.outerHTML;
+              content = content.replace(/\[BROWSER\].*?\[\/BROWSER\]/, '🌐 Browser opened');
+            }
+          }
+          
           const html = renderMarkdown(content);
-          row.innerHTML = `<div class="message-avatar ai-avatar">⧩</div><div class="message-content">${th}<div class="message-bubble ai-bubble">${html}</div></div>`;
+          row.innerHTML = `<div class="message-avatar ai-avatar">⧩</div><div class="message-content">${th}<div class="message-bubble ai-bubble" id="stream-${Date.now()}">${html}${extraContent}</div></div>`;
         } else {
           let fh = '';
-          if (attachedFiles?.length) { fh = '<div class="upload-preview">'; attachedFiles.forEach(f => { if (f.type?.startsWith('image/')) fh += `<img src="${f.data}" alt="${f.name}">`; else fh += `<span class="file-tag"><i class="fas fa-file"></i> ${f.name}</span>`; }); fh += '</div>'; }
+          if (attachedFiles?.length) { 
+            fh = '<div class="upload-preview">'; 
+            attachedFiles.forEach(f => { 
+              if (f.type?.startsWith('image/')) fh += `<img src="${f.data}" alt="${f.name}">`; 
+              else fh += `<span class="file-tag"><i class="fas fa-file"></i> ${f.name}</span>`; 
+            }); 
+            fh += '</div>'; 
+          }
           const av = googleUser?.picture ? `<img src="${googleUser.picture}" alt="U">` : '<i class="fas fa-user"></i>';
           row.innerHTML = `<div class="message-content"><div class="message-bubble user-bubble">${content}</div>${fh}</div><div class="message-avatar user-avatar">${av}</div>`;
         }
         messagesContainer.appendChild(row);
         if (!isUser) addCodeActions(row);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        scrollToBottom();
       }
 
       function addCodeActions(container) {
+        if (!container) return;
         container.querySelectorAll('.code-block-wrapper').forEach(w => {
           if (w.querySelector('.code-actions')) return;
           const c = w.querySelector('code'); if (!c) return;
@@ -530,27 +868,106 @@
       function toggleSidebar() { sidebar.classList.contains('closed')||(window.innerWidth<=768&&!sidebar.classList.contains('open'))?openSidebar():closeSidebar(); }
       function closeMobileSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); }
 
-      // File upload
       $('uploadBtn').addEventListener('click', () => fileUploadInput.click());
       fileUploadInput.addEventListener('change', () => {
         const files = Array.from(fileUploadInput.files); if (!files.length) return;
         let done = 0;
         files.forEach(f => {
           const r = new FileReader();
-          r.onload = () => { uploadedFiles.push({ id: Date.now()+Math.random(), name: f.name, type: f.type, data: r.result, size: f.size, content: r.result }); done++; if(done===files.length){ const n=document.createElement('div'); n.style.cssText='position:fixed;bottom:70px;right:20px;background:var(--accent);color:var(--bg);padding:0.4rem 0.8rem;border-radius:1rem;font-size:0.8rem;z-index:50;'; n.textContent=`📎 ${files.length} file(s)`; document.body.appendChild(n); setTimeout(()=>n.remove(),2000); } };
+          r.onload = () => { 
+            uploadedFiles.push({ id: Date.now()+Math.random(), name: f.name, type: f.type, data: r.result, size: f.size, content: r.result }); 
+            done++; 
+            if(done===files.length){ 
+              const n=document.createElement('div'); 
+              n.style.cssText='position:fixed;bottom:70px;right:20px;background:var(--accent);color:var(--bg);padding:0.4rem 0.8rem;border-radius:1rem;font-size:0.8rem;z-index:50;'; 
+              n.textContent=`📎 ${files.length} file(s) uploaded`; 
+              document.body.appendChild(n); 
+              setTimeout(()=>n.remove(),2000); 
+            } 
+          };
           if (f.type.startsWith('image/')) r.readAsDataURL(f); else r.readAsText(f);
         });
         fileUploadInput.value = '';
       });
 
+      function finalizeThinkingUI(thinkId, keepContent) {
+        const btn = document.getElementById('thinkBtn-' + thinkId);
+        const el = document.getElementById(thinkId);
+        if (btn) {
+          if (keepContent) { btn.innerHTML = '<i class="fas fa-brain"></i> View thinking'; btn.classList.remove('active'); }
+          else { btn.remove(); }
+        }
+        if (el) { el.classList.remove('streaming'); if (!keepContent) el.remove(); }
+      }
+
+      function streamText(element, content, thinkingEl = null) {
+        let index = 0;
+        const chars = content.split('');
+        let fullText = '';
+        
+        function renderCurrent() {
+          const rendered = renderMarkdown(fullText);
+          element.innerHTML = rendered;
+          addCodeActions(element.closest('.message-row'));
+          if (thinkingEl && thinkingContent) {
+            thinkingEl.textContent = thinkingContent;
+            thinkingEl.classList.add('streaming');
+          }
+          scrollToBottom();
+        }
+        
+        function streamChar() {
+          if (streamAborted) {
+            fullText = content;
+            renderCurrent();
+            if (thinkingEl) thinkingEl.classList.remove('streaming');
+            addCodeActions(element.closest('.message-row'));
+            scrollToBottom();
+            return;
+          }
+          if (index < chars.length) {
+            fullText += chars[index];
+            index++;
+            renderCurrent();
+            const delay = 2 + Math.random() * 3;
+            setTimeout(streamChar, delay);
+          } else {
+            renderCurrent();
+            if (thinkingEl) thinkingEl.classList.remove('streaming');
+            addCodeActions(element.closest('.message-row'));
+            scrollToBottom();
+          }
+        }
+        
+        streamChar();
+      }
+
       async function handleSend() {
         if (isProcessing) return;
         const text = userInput.value.trim();
         if (!text && !uploadedFiles.length) return;
-        const config = getApiConfig();
-        if (!config) { alert('No API key. Add one in Settings.'); return; }
+        
+        const providerKey = keys[currentModel.provider];
+        if (!providerKey || !providerKey.trim()) {
+          alert(`Please add your ${currentModel.provider} API key in Settings first.`);
+          settingsModal.classList.remove('hidden');
+          return;
+        }
+
         if (!currentChatId) createNewChat();
         if (isLanding) { isLanding = false; messagesContainer.innerHTML = ''; }
+
+        const isImageGen = currentModel.imageGen && (
+          text.toLowerCase().includes('generate') || 
+          text.toLowerCase().includes('create') || 
+          text.toLowerCase().includes('draw') ||
+          text.toLowerCase().includes('paint') ||
+          text.toLowerCase().includes('image')
+        );
+
+        const isBrowse = text.includes('browse') || text.includes('visit') || text.includes('open') || text.includes('go to');
+        const urlMatch = text.match(/(https?:\/\/[^\s]+)/);
+        
         let uc = text || '';
         if (uploadedFiles.length) {
           const fc = uploadedFiles.map(f => f.type?.startsWith('image/') ? `[Image: ${f.name}]` : `--- ${f.name} ---\n${(f.content||'').substring(0,4000)}\n---`).join('\n\n');
@@ -558,43 +975,159 @@
         }
         const dc = text || (uploadedFiles.length ? `📎 ${uploadedFiles.length} file(s)` : '');
         const af = [...uploadedFiles];
+        
         currentMessages.push({ role: 'user', content: uc, files: af.length ? af : null });
         appendMsg(dc, true, null, af.length ? af : null);
-        userInput.value = ''; uploadedFiles = []; saveCurrentChat();
+        userInput.value = ''; 
+        userInput.style.height = 'auto';
+        uploadedFiles = []; 
+        saveCurrentChat();
 
-        const tr = document.createElement('div'); tr.className = 'message-row'; tr.id = 'typingIndicator';
-        tr.innerHTML = '<div class="message-avatar ai-avatar">⧩</div><div class="message-content"><div class="message-bubble ai-bubble" style="color:var(--text2);">Thinking...</div></div>';
-        messagesContainer.appendChild(tr); messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        const row = document.createElement('div');
+        row.className = 'message-row';
+        const bubbleId = 'stream-' + Date.now();
+        const thinkId = 'think-' + Date.now();
+        row.innerHTML = `<div class="message-avatar ai-avatar">⧩</div><div class="message-content">
+          <button class="thinking-toggle-btn" id="thinkBtn-${thinkId}" onclick="document.getElementById('${thinkId}').classList.toggle('visible')">
+            <i class="fas fa-brain"></i> <span class="typing-indicator"><span></span><span></span><span></span></span> Thinking...
+          </button>
+          <div class="thinking-content" id="${thinkId}"></div>
+          <div class="message-bubble ai-bubble" id="${bubbleId}"></div>
+        </div>`;
+        messagesContainer.appendChild(row);
+        scrollToBottom();
 
         isProcessing = true; sendBtn.style.display = 'none'; stopBtn.classList.add('visible');
         abortController = new AbortController();
+        streamAborted = false;
+        activeThinkId = thinkId;
+        thinkingContent = '';
 
         try {
+          if (isImageGen && currentModel.imageGen) {
+            const imageUrl = await generateImage(text);
+            if (imageUrl) {
+              const imgHtml = `<img src="${imageUrl}" class="generated-image" alt="Generated image">`;
+              currentMessages.push({ role: 'assistant', content: `🎨 Generated image:\n${imgHtml}`, imageGen: true });
+              const bubble = document.getElementById(bubbleId);
+              if (bubble) {
+                bubble.innerHTML = imgHtml;
+                scrollToBottom();
+              }
+              saveCurrentChat();
+              isProcessing = false; sendBtn.style.display = 'flex'; stopBtn.classList.remove('visible');
+              abortController = null; userInput.focus();
+              return;
+            }
+          }
+
+          if (isBrowse && urlMatch) {
+            const url = urlMatch[0];
+            const browserContainer = createMiniBrowser(url);
+            const msg = `🌐 Browser opened: <a href="${url}" target="_blank">${url}</a>`;
+            currentMessages.push({ role: 'assistant', content: msg, browser: true });
+            const bubble = document.getElementById(bubbleId);
+            if (bubble) {
+              bubble.innerHTML = msg + browserContainer.outerHTML;
+              scrollToBottom();
+            }
+            saveCurrentChat();
+            isProcessing = false; sendBtn.style.display = 'flex'; stopBtn.classList.remove('visible');
+            abortController = null; userInput.focus();
+            return;
+          }
+
+          if (af.length > 0 && af.some(f => f.type?.startsWith('image/')) && currentModel.vision) {
+            const imageFile = af.find(f => f.type?.startsWith('image/'));
+            if (imageFile) {
+              const analysis = await analyzeImage(imageFile.data, text || 'Describe this image in detail.');
+              const msg = `👁️ Vision Analysis:\n\n${analysis}`;
+              currentMessages.push({ role: 'assistant', content: msg });
+              const bubble = document.getElementById(bubbleId);
+              if (bubble) {
+                streamText(bubble, msg, document.getElementById(thinkId));
+              }
+              saveCurrentChat();
+              isProcessing = false; sendBtn.style.display = 'flex'; stopBtn.classList.remove('visible');
+              abortController = null; userInput.focus();
+              return;
+            }
+          }
+
           const am = [];
-          if (systemPromptEnabled) am.push({ role: 'system', content: 'You are Notal AI, a helpful assistant. Use markdown for formatting.' });
+          if (systemPromptEnabled) am.push({ role: 'system', content: 'You are Notal AI, a helpful assistant. Use markdown for formatting. If the user asks to browse a website, respond with [BROWSER]url[/BROWSER].' });
           currentMessages.forEach(m => { if (!m.content?.includes('Welcome')) am.push({ role: m.role, content: m.content?.replace(/<[^>]*>/g, '') || '' }); });
-          let body;
-          if (config.isGoogle) body = { contents: am.map(m => ({ role: m.role==='assistant'?'model':'user', parts: [{ text: m.content }] })) };
-          else body = { model: currentModel.id, messages: am, temperature: 0.7, max_tokens: 2000 };
-
-          const resp = await fetch(config.url, { method: 'POST', headers: config.headers, body: JSON.stringify(body), signal: abortController.signal });
-          if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.error?.message || `HTTP ${resp.status}`); }
+          
+          const resp = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              provider: currentModel.provider,
+              model: currentModel.id,
+              messages: am,
+              prompt: text,
+              imageData: af.find(f => f.type?.startsWith('image/'))?.data || null,
+              isImageGen: isImageGen,
+              apiKey: keys[currentModel.provider]
+            }),
+            signal: abortController.signal
+          });
+          
+          if (!resp.ok) {
+            const err = await resp.json().catch(()=>({}));
+            throw new Error(err.error || `HTTP ${resp.status}`);
+          }
+          
           const data = await resp.json();
-          let content = config.isGoogle ? data.candidates?.[0]?.content?.parts?.[0]?.text || '' : data.choices?.[0]?.message?.content || '';
-          const thinking = data.choices?.[0]?.message?.reasoning || null;
+          let content = data.response || 'No response from AI.';
+          let thinking = data.thinking || null;
 
-          const te = document.getElementById('typingIndicator'); if (te) te.remove();
+          const thinkEl = document.getElementById(thinkId);
+          if (thinking && thinkEl) {
+            thinkingContent = thinking;
+            thinkEl.textContent = thinking;
+            thinkEl.classList.add('streaming');
+            const btn = document.getElementById('thinkBtn-' + thinkId);
+            if (btn) {
+              btn.innerHTML = '<i class="fas fa-brain" style="color:#f59e0b;"></i> 💭 Thinking... <i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>';
+              btn.classList.add('active');
+            }
+          }
+
+          const bubble = document.getElementById(bubbleId);
+          if (bubble) {
+            streamText(bubble, content, thinkEl);
+          }
+
+          setTimeout(() => {
+            const btn = document.getElementById('thinkBtn-' + thinkId);
+            if (btn) {
+              btn.innerHTML = '<i class="fas fa-brain"></i> View thinking';
+              btn.classList.remove('active');
+            }
+            if (thinkEl) thinkEl.classList.remove('streaming');
+          }, content.length * 3 + 500);
+
           currentMessages.push({ role: 'assistant', content, thinking });
-          appendMsg(content, false, thinking);
           saveCurrentChat();
+          
         } catch (err) {
-          const te = document.getElementById('typingIndicator'); if (te) te.remove();
-          const msg = err.name === 'AbortError' ? '⏹️ Stopped' : `❌ ${err.message}`;
-          currentMessages.push({ role: 'assistant', content: msg }); appendMsg(msg, false);
+          const bubble = document.getElementById(bubbleId);
+          finalizeThinkingUI(thinkId, !!thinkingContent);
+          if (bubble) {
+            const msg = err.name === 'AbortError' ? '⏹️ Stopped' : `❌ ${err.message}`;
+            bubble.innerHTML = msg;
+            currentMessages.push({ role: 'assistant', content: msg });
+          }
           saveCurrentChat();
         } finally {
-          isProcessing = false; sendBtn.style.display = 'flex'; stopBtn.classList.remove('visible');
-          abortController = null; userInput.focus();
+          isProcessing = false; 
+          sendBtn.style.display = 'flex'; 
+          stopBtn.classList.remove('visible');
+          abortController = null; 
+          activeThinkId = null;
+          userInput.focus();
+          thinkingContent = '';
         }
       }
 
@@ -604,7 +1137,6 @@
         c.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { if(i.value.trim()) keys[i.dataset.provider]=i.value.trim(); else delete keys[i.dataset.provider]; }));
       }
 
-      // Event Listeners
       $('closeSidebarBtn').addEventListener('click', e => { e.preventDefault(); closeSidebar(); });
       toggleSidebarBtn.addEventListener('click', e => { e.preventDefault(); openSidebar(); });
       $('menuToggle').addEventListener('click', e => { e.preventDefault(); toggleSidebar(); });
@@ -631,22 +1163,26 @@
       }));
       document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => { currentTheme = b.dataset.theme; applyTheme(currentTheme); saveState(); }));
       
-      // Google Sign In
       $('googleSigninBtn').addEventListener('click', () => {
         if (window.google?.accounts?.id && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') google.accounts.id.prompt();
         else { const n = prompt('Name:'); if(n?.trim()){googleUser={name:n.trim(),picture:`https://ui-avatars.com/api/?name=${n.trim()}&bg=000&color=fff&size=64`};localStorage.setItem('notal_google_user',JSON.stringify(googleUser));updateUserUI();} }
       });
       
-      // User profile click - toggle signout dropdown
       $('userProfileBtn').addEventListener('click', (e) => { e.stopPropagation(); signoutDropdown.classList.toggle('show'); });
       $('signoutConfirmBtn').addEventListener('click', () => { googleUser=null;localStorage.removeItem('notal_google_user');updateUserUI();signoutDropdown.classList.remove('show'); });
       document.addEventListener('click', () => signoutDropdown.classList.remove('show'));
       
-      stopBtn.addEventListener('click', () => { if (abortController) { abortController.abort(); abortController = null; } });
+      stopBtn.addEventListener('click', () => {
+        streamAborted = true;
+        if (abortController) { abortController.abort(); abortController = null; }
+        if (activeThinkId) { finalizeThinkingUI(activeThinkId, !!thinkingContent); activeThinkId = null; }
+      });
       modelTrigger.addEventListener('click', e => { e.stopPropagation(); modelDropdown.classList.toggle('show'); });
       document.addEventListener('click', e => { if (!modelTrigger.contains(e.target) && !modelDropdown.contains(e.target)) modelDropdown.classList.remove('show'); });
       sendBtn.addEventListener('click', handleSend);
       userInput.addEventListener('keydown', e => { if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); handleSend(); } });
+      function autoGrowInput() { userInput.style.height = 'auto'; userInput.style.height = Math.min(userInput.scrollHeight, 144) + 'px'; }
+      userInput.addEventListener('input', autoGrowInput);
       document.addEventListener('keydown', e => { if (e.key==='Escape') { if (isProcessing && abortController) abortController.abort(); else { settingsModal.classList.add('hidden'); previewPanel.classList.remove('visible'); signoutDropdown.classList.remove('show'); } } });
 
       let tx = 0;
