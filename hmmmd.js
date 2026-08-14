@@ -1,4 +1,4 @@
-(function() {
+(function () {
   "use strict";
 
   // ============================================================
@@ -15,6 +15,7 @@
     { id: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', keyHint: 'sk-proj-...', needsProxy: true, vision: true, imageGen: true },
     { id: 'google', name: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/', keyHint: 'AIza...', needsProxy: true, vision: true, imageGen: false },
     { id: 'tokenrouter', name: 'TokenRouter', baseUrl: 'https://api.tokenrouter.com/v1/chat/completions', keyHint: 'sk-...', needsProxy: false, vision: true, imageGen: false },
+    { id: 'notalai-space', name: 'Notal AI (Free, self-hosted)', baseUrl: null, keyHint: 'no key needed', needsProxy: false, vision: false, imageGen: false },
   ];
 
   // ============================================================
@@ -32,6 +33,7 @@
     { id: 'gemini-3.1-flash', name: 'Gemini 3.1 Flash', provider: 'google', icon: 'fa-bolt', badge: 'Fast', thinking: false, cost: 'low', vision: true },
     { id: 'deepseek-chat', name: 'DeepSeek V3', provider: 'deepseek', icon: 'fa-search', badge: 'Cheap', thinking: false, cost: 'low', vision: false },
     { id: 'deepseek-reasoner', name: 'DeepSeek R1', provider: 'deepseek', icon: 'fa-brain', badge: 'Reason', thinking: true, cost: 'medium', vision: false },
+    { id: 'notal-local', name: 'Notal AI (Free)', provider: 'notalai-space', icon: 'fa-server', badge: 'Free', thinking: false, cost: 'low', vision: false },
     { id: 'mistralai/mistral-large-2', name: 'Mistral Large 2', provider: 'openrouter', icon: 'fa-feather', badge: 'Smart', thinking: false, cost: 'medium', vision: true },
     { id: 'meta-llama/llama-3.2-90b-vision', name: 'Llama 3.2 90B Vision', provider: 'openrouter', icon: 'fa-eye', badge: 'Vision', thinking: false, cost: 'medium', vision: true },
     { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', provider: 'openrouter', icon: 'fa-brain', badge: 'Open', thinking: false, cost: 'medium', vision: false },
@@ -90,7 +92,7 @@
     return html;
   }
 
-  function escapeHtml(t) { return t.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+  function escapeHtml(t) { return t.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>'); }
 
   // ============================================================
   //  LOAD / SAVE STATE
@@ -107,7 +109,6 @@
       systemPromptEnabled = localStorage.getItem('notal_system_prompt') !== 'false';
       currentTheme = localStorage.getItem('notal_theme') || 'default';
       googleUser = JSON.parse(localStorage.getItem('notal_google_user') || 'null');
-      console.log('State loaded - systemPromptEnabled:', systemPromptEnabled, 'previewEnabled:', previewEnabled, 'raw storage value:', localStorage.getItem('notal_system_prompt'));
       applyTheme(currentTheme);
       if ($('proxyToggle')) $('proxyToggle').checked = proxyEnabled;
       if ($('proxyUrlInput')) $('proxyUrlInput').value = proxyUrl;
@@ -139,7 +140,6 @@
       localStorage.setItem('notal_preview', String(previewEnabled));
       localStorage.setItem('notal_system_prompt', String(systemPromptEnabled));
       localStorage.setItem('notal_theme', currentTheme);
-      console.log('State saved - systemPromptEnabled:', systemPromptEnabled, 'stored as:', String(systemPromptEnabled));
     } catch (e) {
       console.error('SaveState error:', e);
     }
@@ -157,9 +157,11 @@
     const s = $('sidebarGoogleSignin'), p = $('sidebarUserProfile');
     if (googleUser) {
       if (s) s.style.display = 'none';
-      if (p) { p.style.display = 'flex';
-      if ($('sidebarUserAvatar')) $('sidebarUserAvatar').src = googleUser.picture;
-      if ($('sidebarUserName')) $('sidebarUserName').textContent = googleUser.name; }
+      if (p) {
+        p.style.display = 'flex';
+        if ($('sidebarUserAvatar')) $('sidebarUserAvatar').src = googleUser.picture;
+        if ($('sidebarUserName')) $('sidebarUserName').textContent = googleUser.name;
+      }
     } else {
       if (s) s.style.display = 'block';
       if (p) p.style.display = 'none';
@@ -173,29 +175,40 @@
   }
 
   // ============================================================
-  //  API CONFIG
+  //  API CONFIG + GRADIO SPACE (matches your "Use via API" page)
   // ============================================================
   const CLOUDFLARE_WORKER_URL = 'https://notal-ai-backend.hotfinixbrave.workers.dev/';
-  
+  async function callGradioSpace(messages, signal) {
+    const lastUser = messages[messages.length - 1]?.content || '';
+
+    // Token lives safely in Cloudflare — this file contains ZERO secrets now
+    const resp = await fetch(CLOUDFLARE_WORKER_URL + 'gradio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: lastUser }),
+      signal
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Worker error: HTTP ' + resp.status);
+
+    return data.response || 'No response from the Space.';
+  }
+
   function getApiConfig() {
-    console.log('Current model:', currentModel);
-    console.log('Keys available:', Object.keys(keys));
-    
+    if (currentModel.provider === 'notalai-space') {
+      return { useGradio: true };
+    }
     const apiKey = keys[currentModel.provider];
-    
     if (apiKey) {
-      console.log('Using Cloudflare Worker proxy');
       return {
         url: CLOUDFLARE_WORKER_URL,
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         useWorker: true,
         provider: currentModel.provider,
         apiKey: apiKey
       };
     }
-    
     return null;
   }
 
@@ -268,8 +281,10 @@
       </div>`;
     messagesContainer.querySelectorAll('.suggestion-card').forEach(card => {
       card.addEventListener('click', () => {
-        if (userInput) { userInput.value = card.dataset.prompt;
-        userInput.focus(); }
+        if (userInput) {
+          userInput.value = card.dataset.prompt;
+          userInput.focus();
+        }
       });
     });
     if (messagesContainer) messagesContainer.scrollTop = 0;
@@ -355,32 +370,19 @@
       </div>
       <iframe class="browser-iframe" src="${escapeHtml(url)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
     `;
-
     const iframe = container.querySelector('.browser-iframe');
     const urlInput = container.querySelector('.browser-url');
-
     container.querySelector('.browser-go').addEventListener('click', () => {
       let val = urlInput.value.trim();
       if (!val.startsWith('http://') && !val.startsWith('https://')) val = 'https://' + val;
       iframe.src = val;
     });
-
     container.querySelector('.browser-url').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') container.querySelector('.browser-go').click();
     });
-
-    container.querySelector('.browser-refresh').addEventListener('click', () => {
-      iframe.src = iframe.src;
-    });
-
-    container.querySelector('.browser-back').addEventListener('click', () => {
-      try { iframe.contentWindow?.history?.back(); } catch(e) {}
-    });
-
-    container.querySelector('.browser-forward').addEventListener('click', () => {
-      try { iframe.contentWindow?.history?.forward(); } catch(e) {}
-    });
-
+    container.querySelector('.browser-refresh').addEventListener('click', () => { iframe.src = iframe.src; });
+    container.querySelector('.browser-back').addEventListener('click', () => { try { iframe.contentWindow?.history?.back(); } catch (e) { } });
+    container.querySelector('.browser-forward').addEventListener('click', () => { try { iframe.contentWindow?.history?.forward(); } catch (e) { } });
     return container;
   }
 
@@ -394,12 +396,8 @@
         const thinkId = 'think-' + Date.now();
         th = `<button class="thinking-toggle-btn" onclick="document.getElementById('${thinkId}').classList.toggle('visible')"><i class="fas fa-brain"></i> View thinking</button><div class="thinking-content" id="${thinkId}">${thinking}</div>`;
       }
-
       let extraContent = '';
-      if (imageGen) {
-        extraContent = `<div class="image-loading"><i class="fas fa-spinner"></i> Generating image...</div>`;
-      }
-
+      if (imageGen) extraContent = `<div class="image-loading"><i class="fas fa-spinner"></i> Generating image...</div>`;
       if (content.includes('[BROWSER]')) {
         const url = content.match(/\[BROWSER\](.*?)\[\/BROWSER\]/);
         if (url) {
@@ -408,7 +406,6 @@
           content = content.replace(/\[BROWSER\].*?\[\/BROWSER\]/, '🌐 Browser opened');
         }
       }
-
       const html = renderMarkdown(content);
       const timeStr = ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       const acts = `<div class="msg-actions"><button class="msg-action-btn" data-action="copy" title="Copy"><i class="fas fa-copy"></i></button><button class="msg-action-btn" data-action="regen" title="Regenerate"><i class="fas fa-rotate-right"></i></button><button class="msg-action-btn" data-action="speak" title="Read aloud"><i class="fas fa-volume-high"></i></button><button class="msg-action-btn" data-action="like" title="Good response"><i class="fas fa-thumbs-up"></i></button><button class="msg-action-btn" data-action="dislike" title="Bad response"><i class="fas fa-thumbs-down"></i></button><span class="msg-time">${timeStr}</span></div>`;
@@ -447,15 +444,14 @@
         navigator.clipboard.writeText(c.textContent).then(() => {
           cp.innerHTML = '<i class="fas fa-check"></i>';
           cp.classList.add('copied');
-          setTimeout(() => { cp.innerHTML = '<i class="fas fa-copy"></i>';
-            cp.classList.remove('copied'); }, 2000);
+          setTimeout(() => { cp.innerHTML = '<i class="fas fa-copy"></i>'; cp.classList.remove('copied'); }, 2000);
         });
       });
       a.appendChild(cp);
       if (previewEnabled && (c.className.includes('html') || c.textContent.trim().startsWith('<'))) {
         const rb = document.createElement('button');
         rb.className = 'run-btn';
-        rb.innerHTML = '<i class="fas fa-play"></i>';
+        rb.innerHTML = '<i class="fas fa-play"></i><span>Preview</span>';
         rb.addEventListener('click', () => openPreview(c.textContent, 'index.html'));
         a.appendChild(rb);
       }
@@ -463,13 +459,32 @@
     });
   }
 
+  let previewObjectUrl = null;
+  function buildPreviewDocument(content) {
+    const bridge = `<script>(function(){const send=(type,args)=>{try{parent.postMessage({source:'notal-preview',type,args:Array.from(args).map(v=>{try{return typeof v==='string'?v:JSON.stringify(v)}catch(e){return String(v)}})},'*')}catch(e){}};['log','info','warn','error','debug'].forEach(k=>{const old=console[k];console[k]=function(){send(k,arguments);old.apply(console,arguments)}});window.addEventListener('error',e=>send('error',[e.message+' @ '+e.filename+':'+e.lineno]));window.addEventListener('unhandledrejection',e=>send('error',['Unhandled promise rejection: '+e.reason]));window.addEventListener('load',()=>send('info',['Preview loaded']));})();</script>`;
+    if (/<head[\s>]/i.test(content)) return content.replace(/<head(\s[^>]*)?>/i, m => m + bridge);
+    return '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' + bridge + '</head><body>' + content + '</body></html>';
+  }
+
   function openPreview(content, filename = 'index.html') {
     previewContent = content;
+    window.__notalPreviewContent = content;
     if (previewPanel) previewPanel.classList.add('visible');
     if (window.innerWidth <= 768 && mobilePreviewOverlay) mobilePreviewOverlay.classList.add('active');
     if (previewUrl) previewUrl.textContent = filename;
-    const blob = new Blob([content], { type: 'text/html' });
-    if (previewFrame) previewFrame.src = URL.createObjectURL(blob);
+    clearPreviewConsole();
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    const fullDoc = buildPreviewDocument(content);
+    previewObjectUrl = URL.createObjectURL(new Blob([fullDoc], { type: 'text/html' }));
+    if (previewFrame) previewFrame.src = previewObjectUrl;
+    const status = $('previewStatus');
+    if (status) { status.textContent = 'Running'; status.className = 'preview-status live'; }
+  }
+
+  function clearPreviewConsole() {
+    const body = $('previewConsoleBody');
+    if (body) body.innerHTML = '<div class="console-empty">Console output will appear here.</div>';
+    const count = $('previewConsoleCount'); if (count) count.textContent = '0';
   }
 
   function saveCurrentChat() {
@@ -503,11 +518,8 @@
   }
 
   function toggleSidebar() {
-    if (sidebar && (sidebar.classList.contains('closed') || (window.innerWidth <= 768 && !sidebar.classList.contains('open')))) {
-      openSidebar();
-    } else {
-      closeSidebar();
-    }
+    if (sidebar && (sidebar.classList.contains('closed') || (window.innerWidth <= 768 && !sidebar.classList.contains('open')))) openSidebar();
+    else closeSidebar();
   }
 
   function closeMobileSidebar() {
@@ -515,15 +527,7 @@
     if (sidebarOverlay) sidebarOverlay.classList.remove('active');
   }
 
-  // ============================================================
-  //  FILE UPLOAD
-  // ============================================================
-  if ($('uploadBtn')) {
-    $('uploadBtn').addEventListener('click', () => {
-      if (fileUploadInput) fileUploadInput.click();
-    });
-  }
-
+  if ($('uploadBtn')) $('uploadBtn').addEventListener('click', () => { if (fileUploadInput) fileUploadInput.click(); });
   if (fileUploadInput) {
     fileUploadInput.addEventListener('change', () => {
       const files = Array.from(fileUploadInput.files);
@@ -542,23 +546,16 @@
             setTimeout(() => n.remove(), 2000);
           }
         };
-        if (f.type.startsWith('image/')) r.readAsDataURL(f);
-        else r.readAsText(f);
+        if (f.type.startsWith('image/')) r.readAsDataURL(f); else r.readAsText(f);
       });
       fileUploadInput.value = '';
     });
   }
 
-  // ============================================================
-  //  STREAM TEXT
-  // ============================================================
   function finalizeThinkingUI(thinkId, keepContent) {
     const btn = document.getElementById('thinkBtn-' + thinkId);
     const el = document.getElementById(thinkId);
-    if (btn) {
-      if (keepContent) { btn.innerHTML = '<i class="fas fa-brain"></i> View thinking';
-        btn.classList.remove('active'); } else { btn.remove(); }
-    }
+    if (btn) { if (keepContent) { btn.innerHTML = '<i class="fas fa-brain"></i> View thinking'; btn.classList.remove('active'); } else { btn.remove(); } }
     if (el) { el.classList.remove('streaming'); if (!keepContent) el.remove(); }
   }
 
@@ -566,41 +563,18 @@
     let index = 0;
     const chars = content.split('');
     let fullText = '';
-
     function renderCurrent() {
       const rendered = renderMarkdown(fullText);
       element.innerHTML = rendered;
       addCodeActions(element.closest('.message-row'));
-      if (thinkingEl && thinkingContent) {
-        thinkingEl.textContent = thinkingContent;
-        thinkingEl.classList.add('streaming');
-      }
+      if (thinkingEl && thinkingContent) { thinkingEl.textContent = thinkingContent; thinkingEl.classList.add('streaming'); }
       scrollToBottom();
     }
-
     function streamChar() {
-      if (streamAborted) {
-        fullText = content;
-        renderCurrent();
-        if (thinkingEl) thinkingEl.classList.remove('streaming');
-        addCodeActions(element.closest('.message-row'));
-        scrollToBottom();
-        return;
-      }
-      if (index < chars.length) {
-        fullText += chars[index];
-        index++;
-        renderCurrent();
-        const delay = 2 + Math.random() * 3;
-        setTimeout(streamChar, delay);
-      } else {
-        renderCurrent();
-        if (thinkingEl) thinkingEl.classList.remove('streaming');
-        addCodeActions(element.closest('.message-row'));
-        scrollToBottom();
-      }
+      if (streamAborted) { fullText = content; renderCurrent(); if (thinkingEl) thinkingEl.classList.remove('streaming'); addCodeActions(element.closest('.message-row')); scrollToBottom(); return; }
+      if (index < chars.length) { fullText += chars[index]; index++; renderCurrent(); setTimeout(streamChar, 2 + Math.random() * 3); }
+      else { renderCurrent(); if (thinkingEl) thinkingEl.classList.remove('streaming'); addCodeActions(element.closest('.message-row')); scrollToBottom(); }
     }
-
     streamChar();
   }
 
@@ -608,17 +582,15 @@
   //  HANDLE SEND
   // ============================================================
   async function handleSend() {
+    let content = null;
+    let thinking = null;
+
     if (isProcessing) return;
     const text = userInput ? userInput.value.trim() : '';
     if (!text && !uploadedFiles.length) return;
 
-    console.log('=== HANDLE SEND START ===');
-    console.log('Input text:', text);
-    console.log('Current model:', currentModel);
-    console.log('API key present:', !!keys[currentModel.provider]);
-
     const providerKey = keys[currentModel.provider];
-    if (!providerKey || !providerKey.trim()) {
+    if (currentModel.provider !== 'notalai-space' && (!providerKey || !providerKey.trim())) {
       alert(`Please add your ${currentModel.provider} API key in Settings first.`);
       if (settingsModal) settingsModal.classList.remove('hidden');
       return;
@@ -627,23 +599,8 @@
     if (!currentChatId) createNewChat();
     if (isLanding) { isLanding = false; if (messagesContainer) messagesContainer.innerHTML = ''; }
 
-    const isImageGen = currentModel.imageGen && (
-      text.toLowerCase().includes('generate') ||
-      text.toLowerCase().includes('create') ||
-      text.toLowerCase().includes('draw') ||
-      text.toLowerCase().includes('paint') ||
-      text.toLowerCase().includes('image')
-    );
-
-    const wantsSummary = text.toLowerCase().includes('summarize') ||
-      text.toLowerCase().includes('summary') ||
-      text.toLowerCase().includes('tell me about') ||
-      text.toLowerCase().includes('what\'s on') ||
-      text.toLowerCase().includes('explain') ||
-      text.toLowerCase().includes('give me an overview') ||
-      text.toLowerCase().includes('break down') ||
-      text.toLowerCase().includes('analyze');
-
+    const isImageGen = currentModel.imageGen && (text.toLowerCase().includes('generate') || text.toLowerCase().includes('create') || text.toLowerCase().includes('draw') || text.toLowerCase().includes('paint') || text.toLowerCase().includes('image'));
+    const wantsSummary = text.toLowerCase().includes('summarize') || text.toLowerCase().includes('summary') || text.toLowerCase().includes('tell me about') || text.toLowerCase().includes('explain') || text.toLowerCase().includes('analyze');
     const isBrowse = text.includes('browse') || text.includes('visit') || text.includes('open') || text.includes('go to') || text.includes('fetch');
     const urlMatch = text.match(/(https?:\/\/[^\s]+)/);
 
@@ -655,13 +612,9 @@
     const dc = text || (uploadedFiles.length ? `📎 ${uploadedFiles.length} file(s)` : '');
     const af = [...uploadedFiles];
 
-    const userTs = Date.now();
-    currentMessages.push({ role: 'user', content: uc, files: af.length ? af : null, ts: userTs });
-    appendMsg(dc, true, null, af.length ? af : null, userTs);
-    if (userInput) {
-      userInput.value = '';
-      userInput.style.height = 'auto';
-    }
+    currentMessages.push({ role: 'user', content: uc, files: af.length ? af : null, ts: Date.now() });
+    appendMsg(dc, true, null, af.length ? af : null, Date.now());
+    if (userInput) { userInput.value = ''; userInput.style.height = 'auto'; }
     uploadedFiles = [];
     saveCurrentChat();
 
@@ -676,13 +629,7 @@
       <div class="thinking-content" id="${thinkId}"></div>
       <div class="message-bubble ai-bubble" id="${bubbleId}"></div>
     </div>`;
-    if (messagesContainer) {
-      messagesContainer.appendChild(row);
-      scrollToBottom();
-    }
-    
-    console.log('AI message row created with bubbleId:', bubbleId);
-    console.log('bubbleId exists in DOM:', !!document.getElementById(bubbleId));
+    if (messagesContainer) { messagesContainer.appendChild(row); scrollToBottom(); }
 
     isProcessing = true;
     if (sendBtn) sendBtn.style.display = 'none';
@@ -692,81 +639,41 @@
     activeThinkId = thinkId;
     thinkingContent = '';
 
-    console.log('Starting request processing...');
-    
     try {
-      console.log('Inside try block');
-      
-      // ===== IMAGE GENERATION =====
       if (isImageGen && currentModel.imageGen) {
-        const imgHtml = `<div class="image-loading"><i class="fas fa-spinner"></i> Generating image...</div>`;
         currentMessages.push({ role: 'assistant', content: `🎨 Generated image placeholder`, imageGen: true });
         const bubble = document.getElementById(bubbleId);
-        if (bubble) {
-          bubble.innerHTML = imgHtml;
-          scrollToBottom();
-        }
-        saveCurrentChat();
-        isProcessing = false;
-        if (sendBtn) sendBtn.style.display = 'flex';
-        if (stopBtn) stopBtn.classList.remove('visible');
-        abortController = null;
-        if (userInput) userInput.focus();
-        return;
+        if (bubble) { bubble.innerHTML = `<div class="image-loading"><i class="fas fa-spinner"></i> Generating image...</div>`; scrollToBottom(); }
+        saveCurrentChat(); isProcessing = false; if (sendBtn) sendBtn.style.display = 'flex'; if (stopBtn) stopBtn.classList.remove('visible'); abortController = null; if (userInput) userInput.focus(); return;
       }
 
-      // ===== WEB BROWSING =====
       if (isBrowse && urlMatch) {
         const url = urlMatch[0];
         try {
           let fetchUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-          
-          if (proxyEnabled && proxyUrl) {
-            fetchUrl = `${proxyUrl}?url=${encodeURIComponent(url)}`;
-          }
-          
+          if (proxyEnabled && proxyUrl) fetchUrl = `${proxyUrl}?url=${encodeURIComponent(url)}`;
           const resp = await fetch(fetchUrl, { signal: abortController.signal });
-          if (!resp.ok) {
-            throw new Error(`Failed to fetch webpage (HTTP ${resp.status}). Try enabling CORS proxy in Settings or check your internet connection.`);
-          }
+          if (!resp.ok) throw new Error(`Failed to fetch webpage (HTTP ${resp.status}).`);
           const html = await resp.text();
-          
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, 'text/html');
           doc.querySelectorAll('script, style, link, meta, noscript').forEach(el => el.remove());
-          const body = doc.body;
-          let parsedContent = body ? body.innerText || 'No content found.' : 'No content found.';
+          let parsedContent = doc.body ? doc.body.innerText || 'No content found.' : 'No content found.';
           parsedContent = parsedContent.substring(0, 8000);
 
           if (wantsSummary) {
-            const am = [
-              { role: 'system', content: `You are Notal AI. Summarize this webpage from ${url}:\n\n${parsedContent}` },
-              { role: 'user', content: 'Provide a clear summary with overview, key points, and takeaways.' }
-            ];
-
+            const am = [{ role: 'system', content: `Summarize this webpage from ${url}:\n\n${parsedContent}` }, { role: 'user', content: 'Provide a clear summary.' }];
             const config = getApiConfig();
             if (!config) throw new Error('No API configuration found');
-
-            const resp2 = await fetch(config.url, {
-              method: 'POST',
-              headers: config.headers,
-              body: JSON.stringify({
-                model: currentModel.id,
-                messages: am,
-                temperature: 0.7,
-                max_tokens: 2000
-              }),
-              signal: abortController.signal
-            });
-
-            if (!resp2.ok) {
-              const err = await resp2.json().catch(() => ({}));
-              throw new Error(err.error?.message || `HTTP ${resp2.status}`);
+            let summary;
+            if (config.useGradio) {
+              summary = await callGradioSpace(am, abortController?.signal);
+            } else {
+              const resp2 = await fetch(config.url, { method: 'POST', headers: config.headers, body: JSON.stringify({ model: currentModel.id, messages: am, temperature: 0.7, max_tokens: 2000 }), signal: abortController.signal });
+              if (!resp2.ok) throw new Error(`HTTP ${resp2.status}`);
+              const data = await resp2.json();
+              summary = data.choices?.[0]?.message?.content || 'No summary available.';
             }
-
-            const data = await resp2.json();
-            const summary = data.choices?.[0]?.message?.content || 'No summary available.';
-
             const fullContent = `🌐 **Webpage Summary**: ${url}\n\n${summary}\n\n---\n📄 **Full Content**:\n${parsedContent.substring(0, 4000)}`;
             currentMessages.push({ role: 'assistant', content: fullContent, browser: true });
             const bubble = document.getElementById(bubbleId);
@@ -777,116 +684,42 @@
             const bubble = document.getElementById(bubbleId);
             if (bubble) streamText(bubble, fullContent, document.getElementById(thinkId));
           }
-          saveCurrentChat();
-          isProcessing = false;
-          if (sendBtn) sendBtn.style.display = 'flex';
-          if (stopBtn) stopBtn.classList.remove('visible');
-          abortController = null;
-          if (userInput) userInput.focus();
-          return;
+          saveCurrentChat(); isProcessing = false; if (sendBtn) sendBtn.style.display = 'flex'; if (stopBtn) stopBtn.classList.remove('visible'); abortController = null; if (userInput) userInput.focus(); return;
         } catch (err) {
           const bubble = document.getElementById(bubbleId);
           let errorMsg = `❌ ${err.message}`;
-          
-          if (err.name === 'AbortError') {
-            errorMsg = '⏹️ Browsing cancelled';
-          } else if (err.message.includes('Failed to fetch')) {
-            errorMsg = `❌ Could not fetch webpage. The CORS proxy may be down or blocked. Try:\n1. Enabling CORS Proxy in Settings\n2. Using a different URL\n3. Checking your internet connection`;
-          }
-          
+          if (err.name === 'AbortError') errorMsg = '⏹️ Browsing cancelled';
           if (bubble) bubble.innerHTML = errorMsg;
           currentMessages.push({ role: 'assistant', content: errorMsg });
-          saveCurrentChat();
-          isProcessing = false;
-          if (sendBtn) sendBtn.style.display = 'flex';
-          if (stopBtn) stopBtn.classList.remove('visible');
-          abortController = null;
-          if (userInput) userInput.focus();
-          return;
+          saveCurrentChat(); isProcessing = false; if (sendBtn) sendBtn.style.display = 'flex'; if (stopBtn) stopBtn.classList.remove('visible'); abortController = null; if (userInput) userInput.focus(); return;
         }
       }
 
       // ===== REGULAR CHAT =====
       const am = [];
-      console.log('🔍 DEBUG: systemPromptEnabled value:', systemPromptEnabled, 'type:', typeof systemPromptEnabled);
-      console.log('🔍 DEBUG: toggle element:', $('systemPromptToggle'));
-      console.log('🔍 DEBUG: toggle checked:', $('systemPromptToggle')?.checked);
-      console.log('🔍 DEBUG: localStorage value:', localStorage.getItem('notal_system_prompt'));
-      
       currentMessages.forEach(m => {
-        if (!m.content?.includes('Welcome')) {
-          am.push({ role: m.role, content: m.content?.replace(/<[^>]*>/g, '') || '' });
-        }
+        if (!m.content?.includes('Welcome')) am.push({ role: m.role, content: m.content?.replace(/<[^>]*>/g, '') || '' });
       });
 
-      console.log('Messages to send:', am);
-      
       const config = getApiConfig();
       if (!config) throw new Error('No API configuration found');
 
-      console.log('Got API config, proceeding with request...');
-
-      const requestBody = {
-        provider: config.provider,
-        model: currentModel.id,
-        messages: am,
-        apiKey: config.apiKey,
-        temperature: chatTemperature
-      };
-
-      console.log('Sending request to Cloudflare Worker:', config.url);
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
-      console.log('Headers:', config.headers);
-
-      let fetchUrl = config.url;
-      let fetchHeaders = { ...config.headers };
-      
-      fetchHeaders['User-Agent'] = 'Notal AI Client';
-      
-      let resp;
-      try {
-        resp = await fetch(fetchUrl, {
-          method: 'POST',
-          headers: fetchHeaders,
-          body: JSON.stringify(requestBody),
-          signal: abortController.signal,
-          mode: 'cors',
-          credentials: 'omit'
-        }).catch(err => {
-          console.error('Worker fetch error:', err.message);
-          throw err;
-        });
-      } catch (fetchErr) {
-        console.warn('Cloudflare Worker fetch failed:', fetchErr.message);
-        throw fetchErr;
-      }
-
-      console.log('Response status:', resp.status, resp.statusText);
-      
-      const responseText = await resp.text();
-      console.log('Raw response text:', responseText);
-      if (!resp.ok) {
-        try {
-          const err = JSON.parse(responseText);
-          console.error('Worker error response:', err);
-          throw new Error(err.error || `HTTP ${resp.status}: ${resp.statusText}`);
-        } catch (e) {
-          console.error('Failed to parse error response:', e);
-          throw new Error(`HTTP ${resp.status}: ${responseText.substring(0, 200)}`);
+      if (config.useGradio) {
+        content = await callGradioSpace(am, abortController?.signal);
+      } else {
+        const requestBody = { provider: config.provider, model: currentModel.id, messages: am, apiKey: config.apiKey, temperature: chatTemperature };
+        let fetchUrl = config.url;
+        let fetchHeaders = { ...config.headers, 'User-Agent': 'Notal AI Client' };
+        let resp = await fetch(fetchUrl, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(requestBody), signal: abortController.signal, mode: 'cors', credentials: 'omit' });
+        const responseText = await resp.text();
+        if (!resp.ok) {
+          try { const err = JSON.parse(responseText); throw new Error(err.error || `HTTP ${resp.status}: ${resp.statusText}`); }
+          catch (e) { throw new Error(`HTTP ${resp.status}: ${responseText.substring(0, 200)}`); }
         }
+        let data = JSON.parse(responseText);
+        content = data.response || data.choices?.[0]?.message?.content || 'No response from AI.';
+        thinking = data.thinking || data.choices?.[0]?.message?.reasoning || null;
       }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        console.log('Worker Response:', data);
-      } catch (e) {
-        console.error('Failed to parse response:', e);
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
-      }
-      
-      let content = data.response || data.choices?.[0]?.message?.content || 'No response from AI.';
-      let thinking = data.thinking || data.choices?.[0]?.message?.reasoning || null;
 
       const thinkEl = document.getElementById(thinkId);
       if (thinking && thinkEl) {
@@ -894,68 +727,32 @@
         thinkEl.textContent = thinking;
         thinkEl.classList.add('streaming');
         const btn = document.getElementById('thinkBtn-' + thinkId);
-        if (btn) {
-          btn.innerHTML = '<i class="fas fa-brain" style="color:#f59e0b;"></i> 💭 Thinking... <i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>';
-          btn.classList.add('active');
-        }
+        if (btn) { btn.innerHTML = '<i class="fas fa-brain" style="color:#f59e0b;"></i> 💭 Thinking... <i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>'; btn.classList.add('active'); }
       }
 
       const bubble = document.getElementById(bubbleId);
-      console.log('Bubble element:', bubble);
-      console.log('Content to display:', content);
-      
-      if (bubble) {
-        streamText(bubble, content, thinkEl);
-      } else {
-        console.error('Bubble element not found!');
-        appendMsg(content, false);
-      }
+      if (bubble) streamText(bubble, content, thinkEl);
+      else appendMsg(content, false);
 
       setTimeout(() => {
         const btn = document.getElementById('thinkBtn-' + thinkId);
-        if (btn) {
-          btn.innerHTML = '<i class="fas fa-brain"></i> View thinking';
-          btn.classList.remove('active');
-        }
+        if (btn) { btn.innerHTML = '<i class="fas fa-brain"></i> View thinking'; btn.classList.remove('active'); }
         if (thinkEl) thinkEl.classList.remove('streaming');
-      }, content.length * 3 + 500);
+      }, (content?.length || 0) * 3 + 500);
 
       currentMessages.push({ role: 'assistant', content, thinking, ts: Date.now() });
       saveCurrentChat();
 
     } catch (err) {
-      console.error('=== FULL ERROR CAUGHT ===');
-      console.error('Error name:', err.name);
-      console.error('Error message:', err.message);
-      console.error('Error stack:', err.stack);
-      console.error('Error object:', err);
-      console.error('=== END ERROR ===');
-      
+      console.error('=== FULL ERROR CAUGHT ===', err);
       const bubble = document.getElementById(bubbleId);
       finalizeThinkingUI(thinkId, !!thinkingContent);
-      
       if (bubble) {
         let msg = `❌ ${err.message}`;
-        
-        if (err.name === 'AbortError') {
-          msg = '⏹️ Stopped';
-        } else if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) {
-          msg = `❌ Cloudflare Worker Error: Could not connect to the proxy.\n\n1. Check your internet connection\n2. Verify the worker URL is correct\n3. Check browser console (F12) for details`;
-        } else if (err.message.includes('HTTP 401')) {
-          msg = `❌ Authentication Failed: Your ${currentModel.provider} API key is invalid.\n\nUpdate it in Settings and try again.`;
-        } else if (err.message.includes('HTTP 429')) {
-          msg = `❌ Rate Limited: Too many requests.\n\nPlease wait a moment and try again.`;
-        } else if (err.message.includes('HTTP 400')) {
-          msg = `❌ Bad Request: Check your API key and model.\n\nModel: ${currentModel.id}\n\nCheck browser console (F12) for details.`;
-        } else if (err.message.includes('No API configuration found')) {
-          msg = `❌ No API Key Found!\n\nYou need to add your ${currentModel.provider} API key in Settings:\n1. Click the ⚙️ Settings icon\n2. Go to "Keys" tab\n3. Paste your API key\n4. Click Save`;
-        }
-        
+        if (err.name === 'AbortError') msg = '⏹️ Stopped';
+        else if (err.message.includes('No API configuration')) msg = `❌ No API Key Found! Add it in Settings.`;
         bubble.innerHTML = msg;
         currentMessages.push({ role: 'assistant', content: msg });
-      } else {
-        console.error('Bubble not found for error display');
-        appendMsg(err.message, false);
       }
       saveCurrentChat();
     } finally {
@@ -970,7 +767,7 @@
   }
 
   // ============================================================
-  //  RENDER PROVIDER CARDS
+  //  PROVIDER CARDS & SETTINGS
   // ============================================================
   function renderProviderCards() {
     const c = $('providerCards');
@@ -979,378 +776,89 @@
     c.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { if (i.value.trim()) keys[i.dataset.provider] = i.value.trim(); else delete keys[i.dataset.provider]; }));
   }
 
-  // ============================================================
-  //  EVENT LISTENERS
-  // ============================================================
-  if ($('closeSidebarBtn')) {
-    $('closeSidebarBtn').addEventListener('click', e => { e.preventDefault();
-      closeSidebar(); });
-  }
+  if ($('closeSidebarBtn')) $('closeSidebarBtn').addEventListener('click', e => { e.preventDefault(); closeSidebar(); });
+  if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', e => { e.preventDefault(); openSidebar(); });
+  if ($('menuToggle')) $('menuToggle').addEventListener('click', e => { e.preventDefault(); toggleSidebar(); });
+  if (sidebarOverlay) sidebarOverlay.addEventListener('click', () => { closeMobileSidebar(); if (window.innerWidth >= 769) closeSidebar(); });
+  if (mobilePreviewOverlay) mobilePreviewOverlay.addEventListener('click', () => { if (previewPanel) previewPanel.classList.remove('visible'); mobilePreviewOverlay.classList.remove('active'); });
+  if ($('closePreviewBtn')) $('closePreviewBtn').addEventListener('click', () => { if (previewPanel) previewPanel.classList.remove('visible'); if (mobilePreviewOverlay) mobilePreviewOverlay.classList.remove('active'); });
+  if ($('previewRefreshBtn')) $('previewRefreshBtn').addEventListener('click', () => { if (previewContent) openPreview(previewContent); });
+  if ($('newChatBtn')) $('newChatBtn').addEventListener('click', createNewChat);
+  if ($('sidebarSettingsBtn')) $('sidebarSettingsBtn').addEventListener('click', () => { renderProviderCards(); if (settingsModal) settingsModal.classList.remove('hidden'); });
+  if ($('closeSettingsBtn')) $('closeSettingsBtn').addEventListener('click', () => { if (settingsModal) settingsModal.classList.add('hidden'); });
 
-  if (toggleSidebarBtn) {
-    toggleSidebarBtn.addEventListener('click', e => { e.preventDefault();
-      openSidebar(); });
-  }
-
-  if ($('menuToggle')) {
-    $('menuToggle').addEventListener('click', e => { e.preventDefault();
-      toggleSidebar(); });
-  }
-
-  if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', () => { closeMobileSidebar(); if (window.innerWidth >= 769) closeSidebar(); });
-  }
-
-  if (mobilePreviewOverlay) {
-    mobilePreviewOverlay.addEventListener('click', () => {
-      if (previewPanel) previewPanel.classList.remove('visible');
-      mobilePreviewOverlay.classList.remove('active');
-    });
-  }
-
-  if ($('closePreviewBtn')) {
-    $('closePreviewBtn').addEventListener('click', () => {
-      if (previewPanel) previewPanel.classList.remove('visible');
-      if (mobilePreviewOverlay) mobilePreviewOverlay.classList.remove('active');
-    });
-  }
-
-  if ($('previewRefreshBtn')) {
-    $('previewRefreshBtn').addEventListener('click', () => { if (previewContent) openPreview(previewContent); });
-  }
-
-  if ($('previewBackBtn')) {
-    $('previewBackBtn').addEventListener('click', () => { if (previewFrame && previewFrame.contentWindow) previewFrame.contentWindow?.history?.back(); });
-  }
-
-  if ($('previewExternalBtn')) {
-    $('previewExternalBtn').addEventListener('click', () => { if (previewContent) window.open(URL.createObjectURL(new Blob([previewContent], { type: 'text/html' }))); });
-  }
-
-  if ($('newChatBtn')) {
-    $('newChatBtn').addEventListener('click', createNewChat);
-  }
-
-  if ($('sidebarSettingsBtn')) {
-    $('sidebarSettingsBtn').addEventListener('click', () => {
-      renderProviderCards();
-      if (settingsModal) settingsModal.classList.remove('hidden');
-      const activeTab = document.querySelector('.settings-tab[data-tab="keys"]');
-      if (activeTab) activeTab.click();
-    });
-  }
-
-  if ($('closeSettingsBtn')) {
-    $('closeSettingsBtn').addEventListener('click', () => { if (settingsModal) settingsModal.classList.add('hidden'); });
-  }
-
-  if ($('saveSettingsBtn')) {
-    $('saveSettingsBtn').addEventListener('click', () => {
-      document.querySelectorAll('#providerCards input').forEach(i => { if (i.value.trim()) keys[i.dataset.provider] = i.value.trim(); });
-      proxyEnabled = $('proxyToggle') ? $('proxyToggle').checked : false;
-      proxyUrl = $('proxyUrlInput') ? $('proxyUrlInput').value.trim() : '';
-      previewEnabled = $('previewToggle') ? $('previewToggle').checked : true;
-      systemPromptEnabled = $('systemPromptToggle') ? $('systemPromptToggle').checked : true;
-      console.log('Settings saved - systemPromptEnabled:', systemPromptEnabled);
-      saveState();
-      updateConnectionUI();
-      if (settingsModal) settingsModal.classList.add('hidden');
-    });
-  }
-  
-  if ($('systemPromptToggle')) {
-    $('systemPromptToggle').addEventListener('change', (e) => {
-      systemPromptEnabled = e.target.checked;
-      console.log('System prompt toggled:', systemPromptEnabled);
-      saveState();
-    });
-  }
-  
-  if ($('previewToggle')) {
-    $('previewToggle').addEventListener('change', (e) => {
-      previewEnabled = e.target.checked;
-      console.log('Preview toggled:', previewEnabled);
-      saveState();
-    });
-  }
-  
-  if ($('proxyToggle')) {
-    $('proxyToggle').addEventListener('change', (e) => {
-      proxyEnabled = e.target.checked;
-      console.log('Proxy toggled:', proxyEnabled);
-      saveState();
-    });
-  }
-
-  const closeSettingsBtnFooter = $('closeSettingsBtnFooter');
-  if (closeSettingsBtnFooter) {
-    closeSettingsBtnFooter.addEventListener('click', () => {
-      if (settingsModal) settingsModal.classList.add('hidden');
-    });
-  }
-
-  const themeRow = $('themeRow');
-  const themeDropdown = $('themeDropdown');
-  if (themeRow && themeDropdown) {
-    themeRow.addEventListener('click', () => {
-      const isOpen = themeDropdown.style.display !== 'none';
-      themeDropdown.style.display = isOpen ? 'none' : 'block';
-      themeRow.querySelector('.settings-row-chevron').style.transform = isOpen ? '' : 'rotate(180deg)';
-    });
-  }
-
-  document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => { 
-    document.querySelectorAll('.theme-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    currentTheme = b.dataset.theme;
-    applyTheme(currentTheme);
-    const themeValue = $('themeValue');
-    if (themeValue) themeValue.textContent = currentTheme === 'dark' ? 'Dark' : 'Light';
-    const themeIcon = themeRow ? themeRow.querySelector('.settings-row-icon i') : null;
-    if (themeIcon) themeIcon.className = currentTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-    saveState(); 
-  }));
-
-  function updateSettingsProfile() {
-    const avatar = $('settingsProfileAvatar');
-    const name = $('settingsProfileName');
-    if (googleUser) {
-      if (name) name.textContent = googleUser.name;
-      if (avatar) avatar.innerHTML = `<img src="${googleUser.picture}" alt="U">`;
-    } else {
-      if (name) name.textContent = 'Guest User';
-      if (avatar) avatar.innerHTML = '<i class="fas fa-user"></i>';
-    }
-  }
-
-  if ($('sidebarSettingsBtn')) {
-    const origClick = $('sidebarSettingsBtn').onclick;
-    $('sidebarSettingsBtn').addEventListener('click', () => {
-      updateSettingsProfile();
-    });
-  }
-
-  const settingsProfileCard = $('settingsProfileCard');
-  const profileDropdown = $('profileDropdown');
-  if (settingsProfileCard && profileDropdown) {
-    settingsProfileCard.addEventListener('click', (e) => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle('show');
-    });
-    document.addEventListener('click', (e) => {
-      if (!settingsProfileCard.contains(e.target)) {
-        profileDropdown.classList.remove('show');
-      }
-    });
-  }
-
-  if ($('profileSignInItem')) {
-    $('profileSignInItem').addEventListener('click', () => {
-      if (profileDropdown) profileDropdown.classList.remove('show');
-      if (window.google?.accounts?.id && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-        google.accounts.id.prompt();
-      } else {
-        const n = prompt('Name:');
-        if (n?.trim()) {
-          googleUser = { name: n.trim(), picture: `https://ui-avatars.com/api/?name=${n.trim()}&bg=000&color=fff&size=64` };
-          localStorage.setItem('notal_google_user', JSON.stringify(googleUser));
-          updateUserUI();
-          updateSettingsProfile();
-        }
-      }
-    });
-  }
-
-  if ($('profileEditNameItem')) {
-    $('profileEditNameItem').addEventListener('click', () => {
-      if (profileDropdown) profileDropdown.classList.remove('show');
-      const currentName = googleUser ? googleUser.name : 'Guest User';
-      const n = prompt('Display name:', currentName);
-      if (n?.trim()) {
-        if (googleUser) {
-          googleUser.name = n.trim();
-          googleUser.picture = `https://ui-avatars.com/api/?name=${n.trim()}&bg=000&color=fff&size=64`;
-        } else {
-          googleUser = { name: n.trim(), picture: `https://ui-avatars.com/api/?name=${n.trim()}&bg=000&color=fff&size=64` };
-        }
-        localStorage.setItem('notal_google_user', JSON.stringify(googleUser));
-        updateUserUI();
-        updateSettingsProfile();
-      }
-    });
-  }
-
-  if ($('profileSignOutItem')) {
-    $('profileSignOutItem').addEventListener('click', () => {
-      if (profileDropdown) profileDropdown.classList.remove('show');
-      googleUser = null;
-      localStorage.removeItem('notal_google_user');
-      updateUserUI();
-      updateSettingsProfile();
-    });
-  }
-
-  if ($('googleSigninBtn')) {
-    $('googleSigninBtn').addEventListener('click', () => {
-      if (window.google?.accounts?.id && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') google.accounts.id.prompt();
-      else { const n = prompt('Name:'); if (n?.trim()) { googleUser = { name: n.trim(), picture: `https://ui-avatars.com/api/?name=${n.trim()}&bg=000&color=fff&size=64` };
-          localStorage.setItem('notal_google_user', JSON.stringify(googleUser));
-          updateUserUI(); } }
-    });
-  }
-
-  if ($('userProfileBtn')) {
-    $('userProfileBtn').addEventListener('click', (e) => { e.stopPropagation(); if (signoutDropdown) signoutDropdown.classList.toggle('show'); });
-  }
-
-  if ($('signoutConfirmBtn')) {
-    $('signoutConfirmBtn').addEventListener('click', () => { googleUser = null;
-      localStorage.removeItem('notal_google_user');
-      updateUserUI(); if (signoutDropdown) signoutDropdown.classList.remove('show'); });
-  }
-
-  document.addEventListener('click', () => { if (signoutDropdown) signoutDropdown.classList.remove('show'); });
-
-  if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
-      streamAborted = true;
-      if (abortController) { abortController.abort();
-        abortController = null; }
-      if (activeThinkId) { finalizeThinkingUI(activeThinkId, !!thinkingContent);
-        activeThinkId = null; }
-    });
-  }
-
-  if (modelTrigger) {
-    modelTrigger.addEventListener('click', e => { e.stopPropagation(); if (modelDropdown) modelDropdown.classList.toggle('show'); });
-  }
-
-  document.addEventListener('click', e => {
-    if (modelTrigger && !modelTrigger.contains(e.target) && modelDropdown && !modelDropdown.contains(e.target)) {
-      modelDropdown.classList.remove('show');
-    }
+  if ($('saveSettingsBtn')) $('saveSettingsBtn').addEventListener('click', () => {
+    document.querySelectorAll('#providerCards input').forEach(i => { if (i.value.trim()) keys[i.dataset.provider] = i.value.trim(); });
+    proxyEnabled = $('proxyToggle') ? $('proxyToggle').checked : false;
+    proxyUrl = $('proxyUrlInput') ? $('proxyUrlInput').value.trim() : '';
+    previewEnabled = $('previewToggle') ? $('previewToggle').checked : true;
+    systemPromptEnabled = $('systemPromptToggle') ? $('systemPromptToggle').checked : true;
+    saveState(); updateConnectionUI();
+    if (settingsModal) settingsModal.classList.add('hidden');
   });
 
-  if (sendBtn) {
-    sendBtn.addEventListener('click', handleSend);
-  }
+  if ($('systemPromptToggle')) $('systemPromptToggle').addEventListener('change', (e) => { systemPromptEnabled = e.target.checked; saveState(); });
+  if ($('previewToggle')) $('previewToggle').addEventListener('change', (e) => { previewEnabled = e.target.checked; saveState(); });
+  if ($('proxyToggle')) $('proxyToggle').addEventListener('change', (e) => { proxyEnabled = e.target.checked; saveState(); });
+
+  document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.theme-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); currentTheme = b.dataset.theme; applyTheme(currentTheme); saveState();
+  }));
+
+  if (stopBtn) stopBtn.addEventListener('click', () => { streamAborted = true; if (abortController) { abortController.abort(); abortController = null; } if (activeThinkId) { finalizeThinkingUI(activeThinkId, !!thinkingContent); activeThinkId = null; } });
+  if (modelTrigger) modelTrigger.addEventListener('click', e => { e.stopPropagation(); if (modelDropdown) modelDropdown.classList.toggle('show'); });
+  document.addEventListener('click', e => { if (modelTrigger && !modelTrigger.contains(e.target) && modelDropdown && !modelDropdown.contains(e.target)) modelDropdown.classList.remove('show'); });
+  if (sendBtn) sendBtn.addEventListener('click', handleSend);
 
   if (userInput) {
-    userInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
-        handleSend(); } });
-
-    function autoGrowInput() {
-      userInput.style.height = 'auto';
-      userInput.style.height = Math.min(userInput.scrollHeight, 144) + 'px';
-    }
-    userInput.addEventListener('input', autoGrowInput);
+    userInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+    userInput.addEventListener('input', () => { userInput.style.height = 'auto'; userInput.style.height = Math.min(userInput.scrollHeight, 144) + 'px'; });
   }
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (isProcessing && abortController) abortController.abort();
-      else {
-        if (settingsModal) settingsModal.classList.add('hidden');
-        if (previewPanel) previewPanel.classList.remove('visible');
-        if (signoutDropdown) signoutDropdown.classList.remove('show');
-      }
+      else { if (settingsModal) settingsModal.classList.add('hidden'); if (previewPanel) previewPanel.classList.remove('visible'); }
     }
   });
-
-  let tx = 0;
-  if (sidebar) {
-    sidebar.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
-    sidebar.addEventListener('touchmove', e => { if (e.touches[0].clientX - tx < -60) { closeMobileSidebar(); if (window.innerWidth >= 769) closeSidebar(); } });
-  }
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth <= 768) {
-      if (toggleSidebarBtn) toggleSidebarBtn.style.display = 'none';
-      if (sidebarOpen && sidebar) sidebar.classList.remove('closed');
-    } else {
-      if (!sidebarOpen) {
-        if (toggleSidebarBtn) toggleSidebarBtn.style.display = 'flex';
-        if (sidebar) sidebar.classList.add('closed');
-        if (sidebar) sidebar.classList.remove('open');
-        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-      } else {
-        if (toggleSidebarBtn) toggleSidebarBtn.style.display = 'none';
-        if (sidebar) sidebar.classList.remove('closed', 'open');
-        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-      }
-    }
-  });
-
-  if (localStorage.getItem('notal_sidebar_open') === 'false') {
-    sidebarOpen = false;
-    if (window.innerWidth >= 769) {
-      if (sidebar) sidebar.classList.add('closed');
-      if (toggleSidebarBtn) toggleSidebarBtn.style.display = 'flex';
-    }
-  }
 
   // ============================================================
   //  EXTENDED FEATURES
   // ============================================================
   let chatSearchQuery = '';
   let chatTemperature = parseFloat(localStorage.getItem('notal_temperature') || '0.7');
-  let fontSizePref = localStorage.getItem('notal_font_size') || 'md';
-  let accentPref = localStorage.getItem('notal_accent') || 'default';
-  let recognition = null, isRecording = false, speakingBtn = null;
 
   function toast(msg) {
     document.querySelectorAll('.toast').forEach(t => t.remove());
-    const t = document.createElement('div');
-    t.className = 'toast';
-    t.textContent = msg;
-    document.body.appendChild(t);
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2200);
   }
 
-  if ($('chatSearchInput')) {
-    $('chatSearchInput').addEventListener('input', e => {
-      chatSearchQuery = e.target.value.trim().toLowerCase();
-      renderChatHistory();
-    });
-  }
-
+  if ($('chatSearchInput')) $('chatSearchInput').addEventListener('input', e => { chatSearchQuery = e.target.value.trim().toLowerCase(); renderChatHistory(); });
   function togglePinChat(id) { const c = chats.find(x => x.id === id); if (!c) return; c.pinned = !c.pinned; saveState(); renderChatHistory(); toast(c.pinned ? 'Chat pinned' : 'Chat unpinned'); }
   function renameChat(id) { const c = chats.find(x => x.id === id); if (!c) return; const t = prompt('Rename chat:', c.title); if (t && t.trim()) { c.title = t.trim(); saveState(); renderChatHistory(); toast('Chat renamed'); } }
+
   function exportChat(id) {
     const c = chats.find(x => x.id === id); if (!c) return;
     let md = '# ' + (c.title || 'Chat') + '\n\n';
     (c.messages || []).forEach(m => { md += (m.role === 'user' ? '**You:** ' : '**Notal AI:** ') + (m.content || '') + '\n\n'; });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
-    a.download = (c.title || 'chat').replace(/[^a-z0-9]+/gi, '_') + '.md';
-    a.click();
-    toast('Chat exported');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' })); a.download = (c.title || 'chat').replace(/[^a-z0-9]+/gi, '_') + '.md'; a.click(); toast('Chat exported');
   }
 
   if (messagesContainer) {
     messagesContainer.addEventListener('click', e => {
-      const btn = e.target.closest('.msg-action-btn');
-      if (!btn) return;
-      const row = btn.closest('.message-row');
-      if (!row) return;
+      const btn = e.target.closest('.msg-action-btn'); if (!btn) return;
+      const row = btn.closest('.message-row'); if (!row) return;
       const idx = Array.prototype.indexOf.call(messagesContainer.children, row);
       const action = btn.dataset.action;
       const bubble = row.querySelector('.message-bubble');
       const text = bubble ? bubble.innerText.trim() : '';
-      if (action === 'copy') { navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard')); }
-      else if (action === 'speak') { toggleSpeak(text, btn); }
-      else if (action === 'regen') { regenerateLast(); }
-      else if (action === 'edit') { editUserMessage(idx); }
-      else if (action === 'like' || action === 'dislike') {
-        const other = row.querySelector('[data-action="' + (action === 'like' ? 'dislike' : 'like') + '"]');
-        const was = btn.classList.contains('active');
-        btn.classList.toggle('active');
-        if (other) other.classList.remove('active');
-        const m = currentMessages[idx];
-        if (m) { m.feedback = was ? null : action; saveCurrentChat(); }
-        toast(was ? 'Feedback removed' : 'Thanks for the feedback!');
-      }
+      if (action === 'copy') navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'));
+      else if (action === 'speak') toggleSpeak(text, btn);
+      else if (action === 'regen') regenerateLast();
+      else if (action === 'edit') editUserMessage(idx);
     });
   }
 
@@ -1371,71 +879,17 @@
     for (let i = currentMessages.length - 1; i >= 0; i--) { if (currentMessages[i].role === 'user') { idx = i; break; } }
     if (idx < 0) { toast('Nothing to regenerate'); return; }
     const content = currentMessages[idx].content;
-    currentMessages.splice(idx);
-    saveCurrentChat();
-    renderMessages();
+    currentMessages.splice(idx); saveCurrentChat(); renderMessages();
     if (userInput) { userInput.value = content; userInput.dispatchEvent(new Event('input')); }
     handleSend();
   }
 
   function editUserMessage(idx) {
     if (isProcessing) return;
-    const m = currentMessages[idx];
-    if (!m || m.role !== 'user') return;
+    const m = currentMessages[idx]; if (!m || m.role !== 'user') return;
     if (userInput) { userInput.value = m.content; userInput.dispatchEvent(new Event('input')); userInput.focus(); }
-    currentMessages.splice(idx);
-    saveCurrentChat();
-    renderMessages();
-    toast('Message loaded for editing');
+    currentMessages.splice(idx); saveCurrentChat(); renderMessages(); toast('Message loaded for editing');
   }
-
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SpeechRec && $('voiceBtn')) {
-    recognition = new SpeechRec();
-    recognition.lang = 'en-US';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-    recognition.onresult = e => {
-      let t = '';
-      for (const r of e.results) t += r[0].transcript;
-      if (userInput) { userInput.value = t; userInput.dispatchEvent(new Event('input')); }
-    };
-    recognition.onend = () => { isRecording = false; $('voiceBtn').classList.remove('voice-on'); };
-    recognition.onerror = () => { isRecording = false; $('voiceBtn').classList.remove('voice-on'); toast('Voice input error'); };
-    $('voiceBtn').addEventListener('click', () => {
-      if (isRecording) { recognition.stop(); }
-      else { try { recognition.start(); isRecording = true; $('voiceBtn').classList.add('voice-on'); toast('Listening...'); } catch (err) {} }
-    });
-  } else if ($('voiceBtn')) { $('voiceBtn').style.display = 'none'; }
-
-  function applyFontSize(sz) {
-    document.body.classList.remove('font-sm', 'font-lg');
-    if (sz === 'sm') document.body.classList.add('font-sm');
-    if (sz === 'lg') document.body.classList.add('font-lg');
-    fontSizePref = sz;
-    localStorage.setItem('notal_font_size', sz);
-    document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sz));
-  }
-  document.querySelectorAll('.font-btn').forEach(b => b.addEventListener('click', () => applyFontSize(b.dataset.size)));
-  applyFontSize(fontSizePref);
-
-  function applyAccent(name) {
-    const colors = { blue: '#2d68ff', green: '#22c55e', purple: '#8b5cf6', orange: '#f59e0b', red: '#ef4444' };
-    const st = document.body.style;
-    if (!name || name === 'default' || !colors[name]) {
-      st.removeProperty('--accent'); st.removeProperty('--accent-hover'); st.removeProperty('--bubble-user');
-      name = 'default';
-    } else {
-      st.setProperty('--accent', colors[name]);
-      st.setProperty('--accent-hover', colors[name]);
-      st.setProperty('--bubble-user', colors[name]);
-    }
-    accentPref = name;
-    localStorage.setItem('notal_accent', name);
-    document.querySelectorAll('.swatch').forEach(sw => sw.classList.toggle('active', sw.dataset.accent === name));
-  }
-  document.querySelectorAll('.swatch').forEach(sw => sw.addEventListener('click', () => { applyAccent(sw.dataset.accent); toast('Accent color updated'); }));
-  applyAccent(accentPref);
 
   if ($('temperatureSlider')) {
     $('temperatureSlider').value = chatTemperature;
@@ -1447,78 +901,14 @@
     });
   }
 
-  if ($('clearAllChatsBtn')) {
-    $('clearAllChatsBtn').addEventListener('click', () => {
-      if (!chats.length) { toast('No chats to clear'); return; }
-      if (confirm('Delete ALL chats? This cannot be undone.')) {
-        chats = []; currentChatId = null; currentMessages = [];
-        saveState(); renderChatHistory(); showLanding();
-        toast('All chats cleared');
-      }
-    });
-  }
-
-  if ($('exportAllBtn')) {
-    $('exportAllBtn').addEventListener('click', () => {
-      if (!chats.length) { toast('No chats to export'); return; }
-      let md = '# Notal AI - Chat Export\n\n';
-      chats.forEach(c => {
-        md += '## ' + (c.title || 'Chat') + '\n\n';
-        (c.messages || []).forEach(m => { md += (m.role === 'user' ? '**You:** ' : '**Notal AI:** ') + (m.content || '') + '\n\n'; });
-      });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
-      a.download = 'notal-ai-chats.md';
-      a.click();
-      toast('All chats exported');
-    });
-  }
-
-  if (userInput && $('charCounter')) {
-    userInput.addEventListener('input', () => {
-      const n = userInput.value.length;
-      $('charCounter').textContent = n;
-      $('charCounter').classList.toggle('warn', n > 3000);
-    });
-  }
+  if ($('clearAllChatsBtn')) $('clearAllChatsBtn').addEventListener('click', () => { if (confirm('Delete ALL chats?')) { chats = []; currentChatId = null; currentMessages = []; saveState(); renderChatHistory(); showLanding(); toast('All chats cleared'); } });
 
   document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); createNewChat(); toast('New chat created'); }
     else if (mod && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleSidebar(); }
-    else if (mod && e.key.toLowerCase() === 'e') { e.preventDefault(); if (settingsModal) { settingsModal.classList.toggle('hidden'); updateSettingsProfile(); } }
-    else if (e.key === '/' && !e.target.matches('input, textarea')) { e.preventDefault(); if (userInput) userInput.focus(); }
+    else if (mod && e.key.toLowerCase() === 'e') { e.preventDefault(); if (settingsModal) settingsModal.classList.toggle('hidden'); }
   });
 
-  function initGoogleSignIn() {
-    if (window.google?.accounts?.id && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-      try {
-        google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: (response) => {
-            try {
-              const payload = JSON.parse(atob(response.credential.split('.')[1]));
-              googleUser = {
-                name: payload.name,
-                picture: payload.picture,
-                email: payload.email
-              };
-              localStorage.setItem('notal_google_user', JSON.stringify(googleUser));
-              updateUserUI();
-            } catch (e) {
-              console.error('Google Sign-In error:', e);
-            }
-          }
-        });
-      } catch (e) {
-        console.error('Google Sign-In init error:', e);
-      }
-    }
-  }
-
-  window.addEventListener('load', () => {
-    setTimeout(initGoogleSignIn, 1000);
-    loadState();
-    if (userInput) userInput.focus();
-  });
+  window.addEventListener('load', () => { loadState(); if (userInput) userInput.focus(); });
 })();
