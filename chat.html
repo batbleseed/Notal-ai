@@ -239,7 +239,18 @@
         <div class="input-row-top">
           <textarea id="userInput" placeholder="Message Notal AI..." rows="1"></textarea>
         </div>
-        <div class="input-row-bottom">
+  
+    <div class="composer-enhancements" id="composerEnhancements">
+      <button class="composer-chip" id="quickAttachBtn" type="button"><i class="fas fa-paperclip"></i><span>Attach</span></button>
+      <button class="composer-chip" id="quickImageBtn" type="button"><i class="fas fa-image"></i><span>Image</span></button>
+      <button class="composer-chip" id="quickWebBtn" type="button"><i class="fas fa-globe"></i><span>Web</span></button>
+      <button class="composer-chip" id="quickCodeBtn" type="button"><i class="fas fa-code"></i><span>Code</span></button>
+      <button class="composer-chip" id="quickClearBtn" type="button"><i class="fas fa-eraser"></i><span>Clear</span></button>
+      <div class="composer-spacer"></div>
+      <button class="composer-icon-btn" id="commandPaletteBtn" type="button" title="Command palette"><i class="fas fa-wand-magic-sparkles"></i></button>
+      <button class="composer-icon-btn" id="focusModeBtn" type="button" title="Focus mode"><i class="fas fa-expand"></i></button>
+    </div>
+      <div class="input-row-bottom">
           <div style="display:flex;align-items:center;gap:0.4rem;">
             <button class="upload-btn" id="uploadBtn" title="Attach files"><i class="fas fa-paperclip"></i></button>
             <button class="upload-btn" id="voiceBtn" title="Voice input"><i class="fas fa-microphone"></i></button>
@@ -254,6 +265,21 @@
     </div>
   </div>
 
+
+  <!-- ===== POWER COMMAND PALETTE ===== -->
+  <div class="command-palette-backdrop" id="commandPaletteBackdrop">
+    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="command-search-wrap"><i class="fas fa-search"></i><input id="commandSearch" autocomplete="off" placeholder="Search commands..."><kbd>Esc</kbd></div>
+      <div class="command-list" id="commandList"></div>
+      <div class="command-footer"><span>Navigate</span><kbd>↑</kbd><kbd>↓</kbd><span>Run</span><kbd>Enter</kbd><span>Close</span><kbd>Esc</kbd></div>
+    </div>
+  </div>
+
+  <!-- ===== IMAGE LIGHTBOX ===== -->
+  <div class="image-lightbox" id="imageLightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close image"><i class="fas fa-times"></i></button>
+    <img id="lightboxImage" alt="Preview">
+  </div>
   <!-- ===== PREVIEW PANEL ===== -->
   <div class="preview-panel" id="previewPanel">
     <div class="preview-toolbar">
@@ -268,5 +294,6 @@
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
+  <script src="notal-max.js" defer></script>
 </body>
 </html>
