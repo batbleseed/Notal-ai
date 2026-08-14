@@ -366,3 +366,83 @@ input[type=range] { accent-color:#3b82f6; cursor:pointer; }
   .suggestions { flex-direction: column; align-items: stretch; }
   .suggestion-card { justify-content: flex-start; }
 }
+
+/* ============================================================
+   Notal AI MAX EXPERIENCE — progressive enhancement layer
+   ============================================================ */
+:root{
+  --glass:rgba(255,255,255,.78);
+  --glass-border:rgba(0,0,0,.08);
+  --focus-ring:rgba(45,104,255,.22);
+  --max-width:54rem;
+}
+.theme-dark{
+  --glass:rgba(18,18,18,.82);
+  --glass-border:rgba(255,255,255,.08);
+  --focus-ring:rgba(96,165,250,.22);
+}
+button,input,textarea,select{font:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.messages-container{scroll-behavior:smooth}
+.messages-container:after{content:"";display:block;height:.3rem;flex:0 0 auto}
+
+/* Composer */
+.composer-enhancements{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;padding:.35rem .2rem .2rem}
+.composer-chip,.composer-icon-btn{border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;border-radius:.65rem;transition:transform .15s,background .15s,border-color .15s,color .15s;display:inline-flex;align-items:center;justify-content:center;gap:.4rem}
+.composer-chip{padding:.35rem .55rem;font-size:.7rem}
+.composer-icon-btn{width:2rem;height:2rem;font-size:.72rem}
+.composer-chip:hover,.composer-icon-btn:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+.composer-spacer{flex:1}
+
+/* Command palette */
+.command-palette-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.42);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:500}
+.command-palette-backdrop.show{display:flex}
+.command-palette{width:min(680px,calc(100vw - 28px));background:var(--bg);border:1px solid var(--border);border-radius:1rem;box-shadow:0 24px 80px rgba(0,0,0,.24);overflow:hidden}
+.command-search-wrap{display:flex;align-items:center;gap:.65rem;padding:.85rem 1rem;border-bottom:1px solid var(--border);color:var(--text2)}
+.command-search-wrap input{flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:.95rem}
+.command-search-wrap kbd,.command-footer kbd{border:1px solid var(--border);background:var(--bg2);padding:.12rem .38rem;border-radius:.35rem;font-size:.65rem;color:var(--text2)}
+.command-list{max-height:55vh;overflow:auto;padding:.45rem}
+.command-item{display:flex;align-items:center;gap:.7rem;padding:.65rem .75rem;border-radius:.7rem;cursor:pointer}
+.command-item:hover,.command-item.selected{background:var(--bg-hover)}
+.command-item i{width:1.1rem;color:var(--text2);text-align:center}
+.command-main{min-width:0;flex:1}.command-name{font-size:.82rem;font-weight:600}.command-desc{font-size:.67rem;color:var(--text2);margin-top:.08rem}
+.command-shortcut{color:var(--text2);font-size:.62rem}
+.command-footer{display:flex;align-items:center;gap:.4rem;padding:.55rem .8rem;border-top:1px solid var(--border);font-size:.62rem;color:var(--text2)}
+.command-footer span:nth-of-type(1){margin-left:0}.command-footer span{margin-left:.35rem}
+
+/* Focus mode */
+body.focus-mode .sidebar,body.focus-mode .chat-header{display:none}
+body.focus-mode .main-content{width:100vw}
+body.focus-mode .messages-container{padding-top:3rem}
+body.focus-mode .toggle-sidebar-btn{display:none!important}
+body.focus-mode .input-container{padding-left:min(16vw,12rem);padding-right:min(16vw,12rem)}
+
+/* Better landing */
+.landing-screen{animation:landingRise .35s ease both}
+@keyframes landingRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.suggestion-card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.suggestion-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent)}
+
+/* Image viewer */
+.image-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:3rem;z-index:700}
+.image-lightbox.show{display:flex}
+.image-lightbox img{max-width:92vw;max-height:88vh;border-radius:1rem;box-shadow:0 30px 100px rgba(0,0,0,.5)}
+.lightbox-close{position:absolute;right:1rem;top:1rem;width:2.5rem;height:2.5rem;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+
+/* Dropzone */
+body.drag-active .input-wrapper{border-color:var(--accent)!important;box-shadow:0 0 0 4px var(--focus-ring),0 10px 35px rgba(0,0,0,.10)}
+body.drag-active .input-wrapper:after{content:"Drop files here";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(127,127,127,.06);backdrop-filter:blur(2px);border-radius:inherit;font-weight:700;color:var(--text)}
+.input-wrapper{position:relative}
+
+/* Mobile polish */
+@media(max-width:768px){
+ .composer-enhancements{overflow:auto;flex-wrap:nowrap;scrollbar-width:none}
+ .composer-enhancements::-webkit-scrollbar{display:none}
+ .composer-chip{flex:0 0 auto}
+ .composer-chip span{display:none}
+ .composer-chip i{font-size:.76rem}
+ .composer-icon-btn{flex:0 0 auto}
+ body.focus-mode .input-container{padding-left:.5rem;padding-right:.5rem}
+ .command-palette-backdrop{padding-top:8vh}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}}
