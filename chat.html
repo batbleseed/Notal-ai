@@ -1,387 +1,875 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>Notal AI • Chat</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='68' font-size='55' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'>⧩</text></svg>">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="hmmmd.css">
-  <script src="hmmmd.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Notal AI • The Intelligent Workspace</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='68' font-size='55' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'>⧩</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-dark: #0a0a0a;
+            --bg-card: #f8f9fb;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --accent: #0a0a0a;
+            --accent-hover: #1f2937;
+            --purple: #7c3aed;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --orange: #f59e0b;
+            --radius: 1rem;
+            --radius-lg: 1.5rem;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        nav.scrolled {
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.3rem;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--bg-dark);
+            color: white;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            padding: 0.6rem 1.5rem;
+            background: var(--bg-dark);
+            color: white !important;
+            border-radius: 2rem;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-cta:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            z-index: 99;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        /* Sections */
+        section {
+            padding: 6rem 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 70px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: #f3f0ff;
+            color: var(--purple);
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .btn-primary {
+            padding: 0.9rem 2rem;
+            background: var(--bg-dark);
+            color: white;
+            border-radius: 3rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            padding: 0.9rem 2rem;
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 3rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Features */
+        .features {
+            background: var(--bg-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+
+        .feature-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon.purple {
+            background: #f3f0ff;
+            color: var(--purple);
+        }
+        .feature-icon.blue {
+            background: #eff6ff;
+            color: var(--blue);
+        }
+        .feature-icon.green {
+            background: #ecfdf5;
+            color: var(--green);
+        }
+        .feature-icon.orange {
+            background: #fffbeb;
+            color: var(--orange);
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Demo Preview */
+        .demo {
+            background: white;
+        }
+
+        .demo-preview {
+            background: var(--bg-dark);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .demo-window {
+            background: #1a1a2e;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .demo-titlebar {
+            background: #2d2d3f;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .demo-dot.red {
+            background: #ff5f57;
+        }
+        .demo-dot.yellow {
+            background: #ffbd2e;
+        }
+        .demo-dot.green {
+            background: #28c840;
+        }
+
+        .demo-title {
+            flex: 1;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .demo-body {
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            min-height: 300px;
+        }
+
+        .demo-sidebar {
+            width: 200px;
+            background: #16213e;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .demo-sidebar-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .demo-sidebar-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .demo-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .demo-message {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .demo-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .demo-avatar.ai {
+            background: #7c3aed;
+        }
+
+        .demo-bubble {
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            max-width: 80%;
+            line-height: 1.4;
+        }
+
+        .demo-bubble.ai {
+            background: #2d2d3f;
+            color: #e0e0e0;
+            border-radius: 0 1rem 1rem 1rem;
+        }
+
+        .demo-bubble.user {
+            background: #7c3aed;
+            color: white;
+            border-radius: 1rem 0 1rem 1rem;
+            margin-left: auto;
+        }
+
+        .demo-input {
+            margin-top: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: #2d2d3f;
+            border-radius: 1.5rem;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        /* CTA Section */
+        .cta {
+            background: var(--bg-dark);
+            color: white;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .cta p {
+            color: #aaa;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta .btn-primary {
+            background: white;
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .cta .btn-primary:hover {
+            background: #e5e7eb;
+            box-shadow: 0 15px 30px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            section {
+                padding: 4rem 1.5rem;
+            }
+            .section-header h2 {
+                font-size: 2rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .demo-body {
+                flex-direction: column;
+            }
+            .demo-sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            .cta h2 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- ===== SIDEBAR OVERLAY ===== -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <div class="mobile-preview-overlay" id="mobilePreviewOverlay"></div>
-  <input type="file" id="fileUploadInput" style="display:none;" multiple accept="image/*,.pdf,.txt,.js,.py,.html,.css,.json,.md">
-
-  <!-- ===== SETTINGS MODAL ===== -->
-  <div class="settings-modal hidden" id="settingsModal">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <button class="settings-close-btn" id="closeSettingsBtn"><i class="fas fa-arrow-left"></i></button>
-        <h2>Settings</h2>
-      </div>
-
-      <div class="settings-content">
-        <!-- Profile Card -->
-        <div class="settings-profile-card" id="settingsProfileCard" style="position:relative;">
-          <div class="settings-profile-avatar" id="settingsProfileAvatar"><i class="fas fa-user"></i></div>
-          <div class="settings-profile-name" id="settingsProfileName">Guest User</div>
-          <div class="settings-profile-arrow"><i class="fas fa-chevron-right"></i></div>
-          <div class="profile-dropdown" id="profileDropdown">
-            <div class="profile-dropdown-item" id="profileSignInItem"><i class="fas fa-right-to-bracket"></i> Sign in with Google</div>
-            <div class="profile-dropdown-item" id="profileEditNameItem"><i class="fas fa-pen"></i> Edit display name</div>
-            <div class="profile-dropdown-divider"></div>
-            <div class="profile-dropdown-item danger" id="profileSignOutItem"><i class="fas fa-right-from-bracket"></i> Sign out</div>
-          </div>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">⧩</div>
+            Notal AI
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#demo">Demo</a>
+            <a href="#cta">Get Started</a>
+            <a href="chat.html" class="nav-cta">Let's Chat <i class="fas fa-arrow-right"></i></a>
         </div>
-
-        <!-- General Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">General</div>
-
-          <div class="settings-row" id="themeRow">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-sun"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title">Theme</div>
-              </div>
-            </div>
-            <div class="settings-row-right">
-              <span class="settings-row-value" id="themeValue">Light</span>
-              <i class="fas fa-chevron-down settings-row-chevron"></i>
-            </div>
-          </div>
-          <div id="themeDropdown" style="display:none;padding:0.3rem 0 0 0;">
-            <div style="display:flex;gap:0.5rem;">
-              <button class="theme-btn active" data-theme="default" style="flex:1;"><i class="fas fa-sun"></i> Light</button>
-              <button class="theme-btn" data-theme="dark" style="flex:1;"><i class="fas fa-moon"></i> Dark</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- API Keys Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">API Keys</div>
-          <div style="font-size:0.72rem;color:#666;padding-left:0.2rem;margin-bottom:0.3rem;">Stored securely in your browser's local storage</div>
-          <div id="providerCards"></div>
-        </div>
-
-        <!-- Features Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">Features</div>
-
-          <div class="settings-row">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-code"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title">HTML Preview</div>
-                <div class="settings-row-desc">Display HTML content in a preview panel</div>
-              </div>
-            </div>
-            <div class="settings-row-right">
-              <label class="toggle-switch">
-                <input type="checkbox" id="previewToggle" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-shield-halved"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title">CORS Proxy</div>
-                <div class="settings-row-desc">Use proxy for cross-origin requests</div>
-              </div>
-            </div>
-            <div class="settings-row-right">
-              <label class="toggle-switch">
-                <input type="checkbox" id="proxyToggle">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="settings-input-item" style="padding:0 0.2rem;">
-            <label>Proxy URL</label>
-            <input type="text" id="proxyUrlInput" placeholder="https://...">
-          </div>
-        </div>
-
-        <!-- Appearance Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">Appearance</div>
-          <div class="settings-row" style="cursor:default;">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-text-height"></i></div>
-              <div class="settings-row-text"><div class="settings-row-title">Font size</div></div>
-            </div>
-            <div class="settings-row-right">
-              <button class="theme-btn font-btn" data-size="sm" style="padding:0.4rem 0.7rem;">S</button>
-              <button class="theme-btn font-btn active" data-size="md" style="padding:0.4rem 0.7rem;">M</button>
-              <button class="theme-btn font-btn" data-size="lg" style="padding:0.4rem 0.7rem;">L</button>
-            </div>
-          </div>
-          <div class="settings-row" style="cursor:default;">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-palette"></i></div>
-              <div class="settings-row-text"><div class="settings-row-title">Accent color</div></div>
-            </div>
-            <div class="settings-row-right" style="gap:0.45rem;">
-              <button class="swatch active" data-accent="default" style="background:linear-gradient(135deg,#0d0d0d 50%,#f5f5f5 50%);" title="Default"></button>
-              <button class="swatch" data-accent="blue" style="background:#2d68ff;" title="Blue"></button>
-              <button class="swatch" data-accent="green" style="background:#22c55e;" title="Green"></button>
-              <button class="swatch" data-accent="purple" style="background:#8b5cf6;" title="Purple"></button>
-              <button class="swatch" data-accent="orange" style="background:#f59e0b;" title="Orange"></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chat Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">Chat</div>
-          <div class="settings-row" style="cursor:default;">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-temperature-half"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title">Temperature</div>
-                <div class="settings-row-desc">Higher = more creative, lower = more precise</div>
-              </div>
-            </div>
-            <div class="settings-row-right">
-              <input type="range" id="temperatureSlider" min="0" max="1.5" step="0.1" style="width:110px;">
-              <span class="settings-row-value" id="temperatureValue">0.7</span>
-            </div>
-          </div>
-          <div class="settings-row" id="exportAllBtn">
-            <div class="settings-row-left">
-              <div class="settings-row-icon"><i class="fas fa-file-export"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title">Export all chats</div>
-                <div class="settings-row-desc">Download everything as Markdown</div>
-              </div>
-            </div>
-            <div class="settings-row-right"><i class="fas fa-chevron-right settings-row-chevron"></i></div>
-          </div>
-          <div class="settings-row" id="clearAllChatsBtn">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="color:#ef4444;"><i class="fas fa-trash"></i></div>
-              <div class="settings-row-text">
-                <div class="settings-row-title" style="color:#ef4444;">Clear all chats</div>
-                <div class="settings-row-desc">Permanently delete chat history</div>
-              </div>
-            </div>
-            <div class="settings-row-right"><i class="fas fa-chevron-right settings-row-chevron"></i></div>
-          </div>
-        </div>
-
-        <!-- Advanced Settings: 30+ options -->
-        <div class="settings-group">
-          <div class="settings-group-label">Interface</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-wand-magic-sparkles"></i></div><div class="settings-row-text"><div class="settings-row-title">Smooth animations</div><div class="settings-row-desc">Enable interface transitions</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="animations" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-layer-group"></i></div><div class="settings-row-text"><div class="settings-row-title">Compact chat</div><div class="settings-row-desc">Reduce spacing between messages</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="compactChat"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-maximize"></i></div><div class="settings-row-text"><div class="settings-row-title">Wide chat layout</div><div class="settings-row-desc">Use more horizontal space</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="wideChat"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-clock"></i></div><div class="settings-row-text"><div class="settings-row-title">Show message timestamps</div><div class="settings-row-desc">Display time under messages</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="timestamps" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-bars-staggered"></i></div><div class="settings-row-text"><div class="settings-row-title">Show sidebar search</div><div class="settings-row-desc">Keep chat search visible</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="sidebarSearch" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-arrows-rotate"></i></div><div class="settings-row-text"><div class="settings-row-title">Remember sidebar state</div><div class="settings-row-desc">Restore open or closed state</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="rememberSidebar" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">Messages</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-markdown"></i></div><div class="settings-row-text"><div class="settings-row-title">Markdown rendering</div><div class="settings-row-desc">Format headings, lists, links and code</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="markdown" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-code"></i></div><div class="settings-row-text"><div class="settings-row-title">Syntax highlighting</div><div class="settings-row-desc">Improve code block readability</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="syntax" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-copy"></i></div><div class="settings-row-text"><div class="settings-row-title">Code copy buttons</div><div class="settings-row-desc">Show copy controls on code blocks</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="codeCopy" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-play"></i></div><div class="settings-row-text"><div class="settings-row-title">Code run buttons</div><div class="settings-row-desc">Show Run on HTML code blocks</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="codeRun" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-link"></i></div><div class="settings-row-text"><div class="settings-row-title">Clickable links</div><div class="settings-row-desc">Open Markdown links in a new tab</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="links" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-brain"></i></div><div class="settings-row-text"><div class="settings-row-title">Thinking panel</div><div class="settings-row-desc">Show available reasoning metadata</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="thinking" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-volume-high"></i></div><div class="settings-row-text"><div class="settings-row-title">Read aloud actions</div><div class="settings-row-desc">Keep text-to-speech controls</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="readAloud" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">Composer</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-keyboard"></i></div><div class="settings-row-text"><div class="settings-row-title">Enter to send</div><div class="settings-row-desc">Press Enter to send a message</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="enterSend" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-file-lines"></i></div><div class="settings-row-text"><div class="settings-row-title">Save draft automatically</div><div class="settings-row-desc">Restore unfinished messages</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="drafts" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-paperclip"></i></div><div class="settings-row-text"><div class="settings-row-title">File upload previews</div><div class="settings-row-desc">Show attached files before sending</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="uploadPreviews" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-microphone"></i></div><div class="settings-row-text"><div class="settings-row-title">Voice input</div><div class="settings-row-desc">Enable microphone input when supported</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="voice" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-paste"></i></div><div class="settings-row-text"><div class="settings-row-title">Clipboard image paste</div><div class="settings-row-desc">Paste images directly into chat</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="pasteImages" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-arrows-up-down"></i></div><div class="settings-row-text"><div class="settings-row-title">Auto-grow composer</div><div class="settings-row-desc">Expand the message box while typing</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="autoGrow" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">HTML Preview</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-rotate"></i></div><div class="settings-row-text"><div class="settings-row-title">Auto refresh preview</div><div class="settings-row-desc">Refresh preview after new HTML output</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewAutoRefresh" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-terminal"></i></div><div class="settings-row-text"><div class="settings-row-title">Preview console</div><div class="settings-row-desc">Capture console logs and runtime errors</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewConsole" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-mobile-screen"></i></div><div class="settings-row-text"><div class="settings-row-title">Responsive preview controls</div><div class="settings-row-desc">Allow mobile, tablet and desktop modes</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewDevices" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-lock"></i></div><div class="settings-row-text"><div class="settings-row-title">Sandbox HTML preview</div><div class="settings-row-desc">Keep generated pages isolated in an iframe</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewSandbox" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-download"></i></div><div class="settings-row-text"><div class="settings-row-title">Preview download</div><div class="settings-row-desc">Allow generated HTML to be downloaded</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewDownload" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-up-right-from-square"></i></div><div class="settings-row-text"><div class="settings-row-title">Open preview externally</div><div class="settings-row-desc">Allow opening generated pages in a new tab</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="previewExternal" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">Privacy & Storage</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-floppy-disk"></i></div><div class="settings-row-text"><div class="settings-row-title">Local chat history</div><div class="settings-row-desc">Store conversations in this browser</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="localHistory" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-key"></i></div><div class="settings-row-text"><div class="settings-row-title">Remember API keys</div><div class="settings-row-desc">Keep provider keys in browser storage</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="rememberKeys" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-user-secret"></i></div><div class="settings-row-text"><div class="settings-row-title">Private mode</div><div class="settings-row-desc">Avoid saving new chat messages locally</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="privateMode"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-trash-can"></i></div><div class="settings-row-text"><div class="settings-row-title">Clear drafts on send</div><div class="settings-row-desc">Remove the saved composer draft after sending</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="clearDrafts" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">Accessibility</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-universal-access"></i></div><div class="settings-row-text"><div class="settings-row-title">Reduced motion</div><div class="settings-row-desc">Minimize animations and transitions</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="reducedMotion"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-eye"></i></div><div class="settings-row-text"><div class="settings-row-title">High contrast</div><div class="settings-row-desc">Increase contrast for interface elements</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="highContrast"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-keyboard"></i></div><div class="settings-row-text"><div class="settings-row-title">Keyboard navigation</div><div class="settings-row-desc">Improve focus visibility for keyboard users</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="keyboardNav" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <div class="settings-group">
-          <div class="settings-group-label">Behavior</div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-arrow-down"></i></div><div class="settings-row-text"><div class="settings-row-title">Auto-scroll during responses</div><div class="settings-row-desc">Follow streaming AI output automatically</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="autoScroll" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-bell"></i></div><div class="settings-row-text"><div class="settings-row-title">Response completion notification</div><div class="settings-row-desc">Notify when a long response finishes</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="completionNotify"><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-shield"></i></div><div class="settings-row-text"><div class="settings-row-title">Confirm destructive actions</div><div class="settings-row-desc">Ask before clearing chats or other data</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="confirmActions" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-history"></i></div><div class="settings-row-text"><div class="settings-row-title">Restore last chat</div><div class="settings-row-desc">Open your previous conversation on startup</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="restoreChat" checked><span class="toggle-slider"></span></label></div></div>
-          <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon"><i class="fas fa-mouse-pointer"></i></div><div class="settings-row-text"><div class="settings-row-title">Focus input after response</div><div class="settings-row-desc">Return the cursor to the composer automatically</div></div></div><div class="settings-row-right"><label class="toggle-switch"><input type="checkbox" data-setting="focusAfterResponse" checked><span class="toggle-slider"></span></label></div></div>
-        </div>
-
-        <!-- Shortcuts Section -->
-        <div class="settings-group">
-          <div class="settings-group-label">Keyboard Shortcuts</div>
-          <div class="settings-row" style="cursor:default;">
-            <div class="settings-row-text" style="flex:1;">
-              <div class="shortcut-list">
-                <div><span>New chat</span><span><kbd>Ctrl</kbd> + <kbd>K</kbd></span></div>
-                <div><span>Toggle sidebar</span><span><kbd>Ctrl</kbd> + <kbd>B</kbd></span></div>
-                <div><span>Open settings</span><span><kbd>Ctrl</kbd> + <kbd>E</kbd></span></div>
-                <div><span>Focus input</span><span><kbd>/</kbd></span></div>
-                <div><span>Close panels</span><span><kbd>Esc</kbd></span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ===== TOGGLE SIDEBAR BUTTON ===== -->
-  <button class="toggle-sidebar-btn" id="toggleSidebarBtn"><i class="fas fa-chevron-right"></i></button>
-
-  <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo"><div class="sidebar-logo-icon">⧩</div>Notal AI</div>
-      <button class="close-sidebar-btn" id="closeSidebarBtn"><i class="fas fa-angles-left"></i></button>
-    </div>
-    <button class="new-chat-btn" id="newChatBtn"><i class="fas fa-pen-to-square"></i> New chat</button>
-    <div class="sidebar-search"><i class="fas fa-search"></i><input id="chatSearchInput" placeholder="Search chats..." autocomplete="off"></div>
-    <div class="chat-history" id="chatHistory"></div>
-    <div class="sidebar-footer">
-      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Sign in</button></div>
-      <div id="sidebarUserProfile" style="display:none;flex:1;position:relative;">
-        <div class="sidebar-user" id="userProfileBtn"><img id="sidebarUserAvatar" src="" alt="U"><span class="sidebar-user-name" id="sidebarUserName"></span></div>
-        <div class="signout-dropdown" id="signoutDropdown"><button class="signout-btn" id="signoutConfirmBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></div>
-      </div>
-      <button class="settings-btn-circle" id="sidebarSettingsBtn"><i class="fas fa-cog"></i></button>
-    </div>
-  </aside>
-
-  <!-- ===== MAIN CONTENT ===== -->
-  <div class="main-content">
-    <header class="chat-header">
-      <div class="brand">
-        <button class="mobile-menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>
-        <div style="position:relative;">
-          <div class="model-select-trigger" id="modelTrigger"><span id="selectedModelName">GPT-4o</span> <i class="fas fa-chevron-down" style="font-size:0.55rem;color:var(--text2);"></i></div>
-          <div class="model-dropdown" id="modelDropdown"></div>
-        </div>
-      </div>
-      <div class="header-right">
-        <button class="top-command-btn" id="commandPaletteBtn" type="button" title="Command palette" aria-label="Open command palette">
-          <i class="fas fa-wand-magic-sparkles"></i>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
         </button>
-        <span class="connection-dot" id="connectionDot" title="API status"></span>
-      </div>
-    </header>
-    <div class="messages-container" id="messagesContainer"></div>
-    <div class="input-container">
-      <div class="input-wrapper">
-        <div class="input-row-top">
-          <textarea id="userInput" placeholder="Message Notal AI..." rows="1"></textarea>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#cta">Get Started</a>
+        <a href="chat.html" style="color: var(--purple); font-weight: 600;">Let's Chat →</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🚀 Now with Live Code Runner</div>
+            <h1>Your <span>Intelligent</span> AI Workspace</h1>
+            <p>
+                Notal AI combines powerful language models with a built-in code runner,
+                file explorer, and live preview — all in one clean interface.
+            </p>
+            <div class="hero-buttons">
+                <a href="chat.html" class="btn-primary">
+                    <i class="fas fa-comments"></i> Start Chatting
+                </a>
+                <a href="#features" class="btn-secondary">
+                    <i class="fas fa-arrow-down"></i> Explore Features
+                </a>
+            </div>
         </div>
-  
-      <div class="input-row-bottom">
-          <div style="display:flex;align-items:center;gap:0.4rem;">
-            <button class="upload-btn" id="uploadBtn" title="Attach files"><i class="fas fa-paperclip"></i></button>
-            <button class="upload-btn" id="voiceBtn" title="Voice input"><i class="fas fa-microphone"></i></button>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.4rem;">
-            <span class="char-counter" id="charCounter">0</span>
-            <button class="stop-btn" id="stopBtn"><i class="fas fa-stop"></i></button>
-            <button class="send-btn" id="sendBtn"><i class="fas fa-arrow-up"></i></button>
-          </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything you need</h2>
+                <p>Powerful features that make AI development seamless and productive.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Multi-Model Support</h3>
+                    <p>Switch between GPT-4o, Claude, Gemini, Llama, and more. Use different API keys for each provider.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Live Code Runner</h3>
+                    <p>Run HTML, CSS, and JavaScript directly in the browser. See your code come to life with instant preview.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>File Explorer</h3>
+                    <p>Upload, create, and manage files. AI can generate code that automatically appears in your workspace.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon orange">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Privacy First</h3>
+                    <p>All data stored locally. Your API keys and conversations never leave your browser.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>Chat History</h3>
+                    <p>All conversations saved automatically. Rename, delete, or switch between chats anytime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3>Custom Backends</h3>
+                    <p>Connect to any OpenAI-compatible API. Use OpenRouter, custom endpoints, or CORS proxies.</p>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
+    </section>
 
-
-  <!-- ===== POWER COMMAND PALETTE ===== -->
-  <div class="command-palette-backdrop" id="commandPaletteBackdrop">
-    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
-      <div class="command-search-wrap"><i class="fas fa-search"></i><input id="commandSearch" autocomplete="off" placeholder="Search commands..."><kbd>Esc</kbd></div>
-      <div class="command-list" id="commandList"></div>
-      <div class="command-footer"><span>Navigate</span><kbd>↑</kbd><kbd>↓</kbd><span>Run</span><kbd>Enter</kbd><span>Close</span><kbd>Esc</kbd></div>
-    </div>
-  </div>
-
-  <!-- ===== IMAGE LIGHTBOX ===== -->
-  <div class="image-lightbox" id="imageLightbox" aria-hidden="true">
-    <button class="lightbox-close" id="lightboxClose" aria-label="Close image"><i class="fas fa-times"></i></button>
-    <img id="lightboxImage" alt="Preview">
-  </div>
-  <!-- ===== PREVIEW PANEL ===== -->
-  <section class="preview-panel" id="previewPanel" aria-label="HTML Preview">
-    <div class="preview-topbar">
-      <div class="preview-brand"><i class="fas fa-code"></i><strong>Live Preview</strong><span id="previewStatus" class="preview-status">Ready</span></div>
-      <div class="preview-top-actions">
-        <button id="previewBackBtn" title="Back"><i class="fas fa-arrow-left"></i></button>
-        <button id="previewForwardBtn" title="Forward"><i class="fas fa-arrow-right"></i></button>
-        <button id="previewRefreshBtn" title="Refresh"><i class="fas fa-rotate-right"></i></button>
-        <button id="previewOpenEditorBtn" title="Open source"><i class="fas fa-file-code"></i></button>
-        <button id="previewExternalBtn" title="Open in new tab"><i class="fas fa-up-right-from-square"></i></button>
-        <button id="closePreviewBtn" title="Close"><i class="fas fa-xmark"></i></button>
-      </div>
-    </div>
-    <div class="preview-address-row">
-      <div class="preview-file-pill"><i class="fas fa-file-code"></i><span id="previewUrl">index.html</span></div>
-      <div class="preview-device-group" role="group" aria-label="Preview viewport">
-        <button class="preview-device active" data-preview-size="responsive" title="Responsive"><i class="fas fa-desktop"></i></button>
-        <button class="preview-device" data-preview-size="mobile" title="Mobile"><i class="fas fa-mobile-screen"></i></button>
-        <button class="preview-device" data-preview-size="tablet" title="Tablet"><i class="fas fa-tablet-screen-button"></i></button>
-        <button class="preview-device" data-preview-size="desktop" title="Desktop"><i class="fas fa-tv"></i></button>
-      </div>
-      <label class="preview-auto"><input type="checkbox" id="previewAutoRefresh" checked> Auto</label>
-    </div>
-    <div class="preview-workspace">
-      <div class="preview-stage" id="previewStage">
-        <div class="preview-device-frame" id="previewDeviceFrame">
-          <iframe class="preview-frame" id="previewFrame" title="Rendered HTML preview" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe>
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <h2>See it in action</h2>
+                <p>A glimpse of the Notal AI chat experience.</p>
+            </div>
+            <div class="demo-preview">
+                <div class="demo-window">
+                    <div class="demo-titlebar">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                        <div class="demo-title">Notal AI — Chat</div>
+                    </div>
+                    <div class="demo-body">
+                        <div class="demo-sidebar">
+                            <div style="color:#aaa;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;padding:0.5rem;">History</div>
+                            <div class="demo-sidebar-item">📝 React Component</div>
+                            <div class="demo-sidebar-item active">💡 Python Script</div>
+                            <div class="demo-sidebar-item">🎨 CSS Animation</div>
+                            <div class="demo-sidebar-item">📊 Data Analysis</div>
+                        </div>
+                        <div class="demo-chat">
+                            <div class="demo-message">
+                                <div class="demo-avatar ai">⧩</div>
+                                <div class="demo-bubble ai">Hello! I'm Notal AI. How can I help you today?</div>
+                            </div>
+                            <div class="demo-message" style="justify-content:flex-end;">
+                                <div class="demo-bubble user">Can you write a Python function to sort a list?</div>
+                            </div>
+                            <div class="demo-message">
+                                <div class="demo-avatar ai">⧩</div>
+                                <div class="demo-bubble ai">
+                                    Sure! Here's a quick sort function:<br>
+                                    <code style="background:#1a1a2e;padding:0.2rem 0.4rem;border-radius:0.3rem;display:block;margin-top:0.5rem;">def quick_sort(arr):<br>
+                                        &nbsp;&nbsp;if len(arr) <= 1: return arr<br>
+                                        &nbsp;&nbsp;pivot = arr[0]<br>
+                                        &nbsp;&nbsp;left = [x for x in arr[1:] if x <= pivot]<br>
+                                        &nbsp;&nbsp;right = [x for x in arr[1:] if x > pivot]<br>
+                                        &nbsp;&nbsp;return quick_sort(left) + [pivot] + quick_sort(right)</code>
+                                </div>
+                            </div>
+                            <div class="demo-input">Type a message...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <aside class="preview-console" id="previewConsole">
-        <div class="preview-console-head"><strong>Console</strong><button id="clearPreviewConsole">Clear</button></div>
-        <div class="preview-console-body" id="previewConsoleBody"><div class="console-empty">Console output will appear here.</div></div>
-      </aside>
-    </div>
-    <div class="preview-bottom-bar">
-      <span><i class="fas fa-circle-check"></i> Sandboxed preview</span>
-      <button id="togglePreviewConsole">Console <span id="previewConsoleCount">0</span></button>
-      <button id="downloadPreviewBtn"><i class="fas fa-download"></i> Download HTML</button>
-    </div>
-  </section>
+    </section>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
+    <!-- CTA Section -->
+    <section class="cta" id="cta">
+        <div class="container">
+            <h2>Ready to experience Notal AI?</h2>
+            <p>Start chatting with powerful AI models, run code live, and manage your files — all in one place.</p>
+            <a href="chat.html" class="btn-primary">
+                <i class="fas fa-rocket"></i> Launch Notal AI Chat
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2024 <a href="#">Notal AI</a>. All rights reserved. • <a href="#">Privacy</a> • <a href="#">Terms</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .demo-preview').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
+
   <script src="notal-max.js" defer></script>
 </body>
 </html>
