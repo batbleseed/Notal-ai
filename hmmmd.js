@@ -178,14 +178,18 @@
   //  API CONFIG + GRADIO SPACE (matches your "Use via API" page)
   // ============================================================
   const CLOUDFLARE_WORKER_URL = 'https://notal-ai-backend.hotfinixbrave.workers.dev/';
-  async function callGradioSpace(messages, signal) {
+    async function callGradioSpace(messages, signal) {
     const lastUser = messages[messages.length - 1]?.content || '';
 
-    // Token lives safely in Cloudflare — this file contains ZERO secrets now
+    // Convert previous messages into Gradio history format
+    const history = messages.slice(0, -1)
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({ role: m.role, content: m.content }));
+
     const resp = await fetch(CLOUDFLARE_WORKER_URL + 'gradio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: lastUser }),
+      body: JSON.stringify({ message: lastUser, history: history }),
       signal
     });
 
