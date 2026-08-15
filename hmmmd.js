@@ -25,6 +25,16 @@
 
   const providers = [
     {
+      id: "notalai-space",
+      name: "Notal AI",
+      baseUrl: NOTAL_API_URL,
+      keyHint: "No API key needed (Built-in)",
+      needsProxy: false,
+      vision: false,
+      imageGen: false
+    },
+
+    {
       id: "openrouter",
       name: "OpenRouter",
       baseUrl:
@@ -77,16 +87,6 @@
       needsProxy: false,
       vision: true,
       imageGen: false
-    },
-
-    {
-      id: "notalai-space",
-      name: "Notal AI (Free)",
-      baseUrl: NOTAL_API_URL,
-      keyHint: "No API key needed",
-      needsProxy: false,
-      vision: false,
-      imageGen: false
     }
   ];
 
@@ -95,6 +95,17 @@
   // ============================================================
 
   const allModels = [
+    {
+      id: "notal-local",
+      name: "Notal AI",
+      provider: "notalai-space",
+      icon: "fa-brain",
+      badge: "Default",
+      thinking: false,
+      cost: "low",
+      vision: false
+    },
+
     {
       id: "gpt-4o",
       name: "GPT-4o",
@@ -213,17 +224,6 @@
       badge: "Reason",
       thinking: true,
       cost: "medium",
-      vision: false
-    },
-
-    {
-      id: "notal-local",
-      name: "Notal AI (Free)",
-      provider: "notalai-space",
-      icon: "fa-server",
-      badge: "Free",
-      thinking: false,
-      cost: "low",
       vision: false
     },
 
@@ -770,6 +770,16 @@
         ? "theme-dark"
         : "";
 
+    const themeVal = $("themeValue");
+    if (themeVal) {
+      themeVal.textContent = theme === "dark" ? "Dark" : "Light";
+    }
+
+    const themeIcon = document.querySelector("#themeRow .settings-row-icon i");
+    if (themeIcon) {
+      themeIcon.className = theme === "dark" ? "fas fa-moon" : "fas fa-sun";
+    }
+
     document
       .querySelectorAll(".theme-btn")
       .forEach(button => {
@@ -978,9 +988,26 @@
 
     if (!modelDropdown) return;
 
+    // Filter models: Notal AI is always visible.
+    // For other providers, only show models if keys[model.provider] is filled and not empty.
+    const visibleModels = allModels.filter(model => {
+      if (model.provider === "notalai-space") return true;
+      const providerKey = keys[model.provider];
+      return typeof providerKey === "string" && providerKey.trim().length > 0;
+    });
+
+    // If current model became hidden, fallback to Notal AI
+    if (!visibleModels.some(m => m.id === currentModel?.id)) {
+      currentModel =
+        allModels.find(m => m.id === "notal-local") ||
+        allModels[0];
+      updateModelTrigger();
+      saveState();
+    }
+
     const groups = {};
 
-    allModels.forEach(model => {
+    visibleModels.forEach(model => {
 
       const type =
         model.imageGen
@@ -994,9 +1021,12 @@
 
       if (!groups[key]) {
 
+        const provObj = providers.find(p => p.id === model.provider);
+
         groups[key] = {
           provider:
             model.provider,
+          providerName: provObj ? provObj.name : model.provider,
           type,
           models: []
         };
@@ -1009,7 +1039,8 @@
 
     modelDropdown.innerHTML =
       `<div class="model-dropdown-header">
-        Models
+        <span>Select AI Model</span>
+        <span style="font-size:0.62rem;color:var(--text2);text-transform:none;font-weight:500;">${visibleModels.length} active</span>
       </div>`;
 
     Object.values(groups)
@@ -1019,15 +1050,17 @@
           document.createElement("div");
 
         label.style.cssText =
-          "padding:.3rem .8rem;" +
-          "font-size:.6rem;" +
+          "padding:.35rem .8rem;" +
+          "font-size:.62rem;" +
           "font-weight:700;" +
-          "color:#999;" +
+          "color:var(--text2);" +
           "text-transform:uppercase;" +
-          "background:var(--bg2);";
+          "letter-spacing:0.04em;" +
+          "background:var(--bg2);" +
+          "border-bottom:1px solid var(--border);";
 
         label.textContent =
-          `${group.provider.toUpperCase()} — ${group.type}`;
+          `${group.providerName} • ${group.type}`;
 
         modelDropdown.appendChild(
           label
@@ -1067,42 +1100,50 @@
             option.innerHTML = `
               <i
                 class="fas ${model.icon}"
-                style="width:1.3rem;"
+                style="width:1.2rem;color:var(--accent);"
               ></i>
 
-              ${escapeHtml(model.name)}
-
-              <span
-                style="
-                  font-size:.55rem;
-                  background:#e5e7eb;
-                  padding:.1rem .4rem;
-                  border-radius:.8rem;
-                  margin-left:.4rem;
-                "
-              >
-                ${escapeHtml(model.badge || "")}
+              <span style="font-weight:600;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${escapeHtml(model.name)}
               </span>
+
+              ${model.badge ? `
+                <span
+                  style="
+                    font-size:.56rem;
+                    background:var(--bg2);
+                    color:var(--text);
+                    border:1px solid var(--border);
+                    padding:.1rem .4rem;
+                    border-radius:.8rem;
+                    margin-left:.4rem;
+                    font-weight:600;
+                  "
+                >
+                  ${escapeHtml(model.badge)}
+                </span>
+              ` : ""}
 
               <span
                 style="
                   margin-left:auto;
-                  font-size:.6rem;
+                  font-size:.65rem;
                 "
               >
-                ${typeIcon} ${costIcon}
+                ${typeIcon}
               </span>
 
               ${
                 model.id === currentModel.id
-                  ? '<i class="fas fa-check" style="margin-left:.3rem;"></i>'
+                  ? '<i class="fas fa-check" style="margin-left:.35rem;color:var(--accent);font-size:0.75rem;"></i>'
                   : ""
               }
             `;
 
             option.addEventListener(
               "click",
-              () => {
+              (e) => {
+                e.stopPropagation();
 
                 currentModel =
                   model;
@@ -1126,6 +1167,28 @@
           }
         );
       });
+
+    // Settings & API Keys Button inside Model Dropdown
+    const settingsBtn = document.createElement("button");
+    settingsBtn.type = "button";
+    settingsBtn.className = "model-dropdown-settings-action";
+    settingsBtn.innerHTML = `
+      <div style="display:flex;align-items:center;gap:0.5rem;width:100%;">
+        <i class="fas fa-sliders" style="color:var(--accent);font-size:0.85rem;"></i>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:0.78rem;color:var(--text);">Settings & API Keys</div>
+          <div style="font-size:0.65rem;color:var(--text2);">Configure provider keys to unlock more models</div>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:0.65rem;color:var(--text2);margin-left:auto;"></i>
+      </div>
+    `;
+    settingsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (modelDropdown) modelDropdown.classList.remove("show");
+      renderProviderCards();
+      if (settingsModal) settingsModal.classList.remove("hidden");
+    });
+    modelDropdown.appendChild(settingsBtn);
   }
 
   function updateModelTrigger() {
@@ -1138,7 +1201,7 @@
         ? "🎨"
         : currentModel.vision
           ? "👁️"
-          : "🤖";
+          : "⧩";
 
     selectedModelName.textContent =
       `${icon} ${currentModel.name}`;
@@ -1358,6 +1421,11 @@
   // ============================================================
 
   function renderChatHistory() {
+
+    const chatCountBadge = $("chatCountBadge");
+    if (chatCountBadge) {
+      chatCountBadge.textContent = String(chats.length);
+    }
 
     if (!chatHistory)
       return;
@@ -4343,62 +4411,52 @@ ${webpage}`;
     container.innerHTML =
       providers
         .map(
-          provider => `
-
+          provider => {
+            const isBuiltin = provider.id === "notalai-space";
+            const hasKey = isBuiltin || !!(keys[provider.id] && String(keys[provider.id]).trim());
+            return `
             <div
-              class="provider-card ${
-                keys[provider.id]
-                  ? "has-key"
-                  : ""
-              }"
+              class="provider-card ${hasKey ? "has-key" : ""}"
             >
-
               <div
                 class="provider-card-header"
               >
-
-                ${escapeHtml(
-                  provider.name
-                )}
-
+                ${escapeHtml(provider.name)}
                 <span
                   class="badge ${
-                    provider.needsProxy
-                      ? "badge-yellow"
-                      : "badge-green"
+                    isBuiltin
+                      ? "badge-green"
+                      : provider.needsProxy
+                        ? "badge-yellow"
+                        : "badge-green"
                   }"
                 >
                   ${
-                    provider.needsProxy
-                      ? "Proxy"
-                      : "Direct"
+                    isBuiltin
+                      ? "Ready"
+                      : provider.needsProxy
+                        ? "Proxy"
+                        : "Direct"
                   }
                 </span>
-
-                ${
-                  keys[provider.id]
-                    ? "✅"
-                    : ""
-                }
-
+                ${hasKey ? "✅" : ""}
               </div>
 
-              <input
-                type="password"
-                placeholder="${escapeHtml(
-                  provider.keyHint
-                )}"
-                value="${escapeHtml(
-                  keys[provider.id] ||
-                  ""
-                )}"
-                data-provider="${escapeHtml(
-                  provider.id
-                )}"
-              >
-
+              ${
+                isBuiltin
+                  ? `<div style="font-size:0.75rem;color:var(--text2);padding:0.3rem 0;">Built-in AI model • No API key required</div>`
+                  : `
+                  <input
+                    type="password"
+                    placeholder="${escapeHtml(provider.keyHint)}"
+                    value="${escapeHtml(keys[provider.id] || "")}"
+                    data-provider="${escapeHtml(provider.id)}"
+                  >
+                  `
+              }
             </div>
-          `
+          `;
+          }
         )
         .join("");
 
@@ -4415,21 +4473,24 @@ ${webpage}`;
             const provider =
               input.dataset.provider;
 
-            if (
-              input.value.trim()
-            ) {
+            const val = input.value.trim();
 
-              keys[provider] =
-                input.value.trim();
+            if (val) {
+
+              keys[provider] = val;
+              input.closest(".provider-card")?.classList.add("has-key");
 
             } else {
 
               delete keys[
                 provider
               ];
+              input.closest(".provider-card")?.classList.remove("has-key");
             }
 
+            saveState();
             updateConnectionUI();
+            initModelDropdown();
           }
         );
       });
@@ -5199,8 +5260,54 @@ ${webpage}`;
   }
 
   // ============================================================
-  // SIDEBAR EVENTS
+  // SIDEBAR & NAVIGATION EVENTS
   // ============================================================
+
+  if ($("navChatsBtn")) {
+    $("navChatsBtn").addEventListener("click", () => {
+      document.querySelectorAll(".sidebar-nav-btn").forEach(btn => btn.classList.remove("active"));
+      $("navChatsBtn").classList.add("active");
+      if ($("chatSearchInput")) {
+        $("chatSearchInput").focus();
+      }
+    });
+  }
+
+  if ($("navExploreBtn")) {
+    $("navExploreBtn").addEventListener("click", () => {
+      const palette = $("commandPalette");
+      if (palette) {
+        palette.classList.remove("hidden");
+        const input = $("commandPaletteInput");
+        if (input) {
+          input.value = "/";
+          input.focus();
+        }
+      } else {
+        toast("Explore: Use / for quick prompt commands");
+      }
+    });
+  }
+
+  if ($("navSettingsQuickBtn")) {
+    $("navSettingsQuickBtn").addEventListener("click", () => {
+      renderProviderCards();
+      if (settingsModal) {
+        settingsModal.classList.remove("hidden");
+      }
+    });
+  }
+
+  if ($("themeRow")) {
+    $("themeRow").addEventListener("click", (e) => {
+      if (e.target.closest(".theme-btn")) return;
+      const dd = $("themeDropdown");
+      if (dd) {
+        const isHidden = dd.style.display === "none";
+        dd.style.display = isHidden ? "block" : "none";
+      }
+    });
+  }
 
   if (
     $("closeSidebarBtn")
