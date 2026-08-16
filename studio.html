@@ -1,642 +1,1457 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notal AI Studio - Complete AI Development Platform</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Notal AI Studio • Google AI Studio & Advanced Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='68' font-size='55' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'>⧩</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --sidebar-width: 268px;
+      --panel-width: 340px;
+      --header-height: 54px;
+      --bg: #ffffff;
+      --bg2: #f8f8f8;
+      --bg-sidebar: #f9f9fa;
+      --bg-hover: #f0f0f0;
+      --text: #0d0d0d;
+      --text2: #8e8ea0;
+      --border: #e5e5e5;
+      --border-soft: #f0f0f0;
+      --accent: #0d0d0d;
+      --accent-hover: #2b2b2b;
+      --accent-contrast: #ffffff;
+      --primary: #0d0d0d;
+      --primary-hover: #2b2b2b;
+      --bubble-user: #0d0d0d;
+      --bubble-user-text: #ffffff;
+      --bubble-ai: #f8f8f8;
+      --radius: 1rem;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05);
+      --composer-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .theme-dark {
+      --bg: #0d0d0d;
+      --bg2: #1a1a1a;
+      --bg-sidebar: #131313;
+      --bg-hover: #262626;
+      --text: #f5f5f5;
+      --text2: #a0a0a0;
+      --border: #2a2a2a;
+      --border-soft: #1f1f1f;
+      --accent: #f5f5f5;
+      --accent-hover: #e0e0e0;
+      --accent-contrast: #0d0d0d;
+      --primary: #2d68ff;
+      --primary-hover: #1b52e0;
+      --bubble-user: #2d68ff;
+      --bubble-user-text: #ffffff;
+      --bubble-ai: #1a1a1a;
+      --shadow: 0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.4);
+      --composer-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      transition: background 0.25s, color 0.25s;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    .theme-dark ::-webkit-scrollbar-thumb { background: #4a4a4a; }
+
+    /* Layout */
+    .app-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; }
     
-    <!-- SEO Meta Tags - FULLY VISIBLE TO SCRAPERS -->
-    <meta name="description" content="Notal AI Studio is a complete AI development platform featuring 15+ AI models, image generation, vision analysis, web browsing, and code preview. 100% client-side, privacy-focused, and free to use.">
-    <meta name="keywords" content="AI Studio, GPT-4o, Claude 3.5, DeepSeek, Gemini, AI development, image generation, vision AI, code preview, web browsing">
-    <meta property="og:title" content="Notal AI Studio - Complete AI Platform">
-    <meta property="og:description" content="All-in-one AI platform with 15+ models, image generation, vision, and web browsing. No signup required.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://batbleseed.github.io/Notal-ai/studio.html">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://batbleseed.github.io/Notal-ai/studio.html">
+    .sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 20;
+      transition: transform 0.2s ease;
+    }
+    .sidebar.closed { transform: translateX(-100%); width: 0; overflow: hidden; border-right: none; }
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text x='50' y='68' font-size='55' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'>⧩</text></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    .sidebar-header {
+      padding: 0.75rem 0.8rem 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .logo.disappearing {
+      transform: scale(0.85) translateX(-20px);
+      opacity: 0;
+    }
+    .logo-icon {
+      width: 1.7rem;
+      height: 1.7rem;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border-radius: 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
     
-    <style>
-        /* ===== COMPLETE STYLES ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #141414;
-            --bg-card: #1a1a1a;
-            --bg-input: #222222;
-            --bg-hover: #2a2a2a;
-            --text-primary: #e8e8e8;
-            --text-secondary: #888888;
-            --border-color: #2a2a2a;
-            --accent: #ffffff;
-            --accent-hover: #cccccc;
-            --shadow: 0 8px 32px rgba(0,0,0,0.5);
-            --radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-        }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    .btn-primary {
+      width: calc(100% - 1.3rem);
+      margin: 0.35rem 0.65rem 0.55rem;
+      padding: 0.62rem 0.8rem;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border: 1px solid transparent;
+      border-radius: 0.85rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 260px;
-            height: 100vh;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            position: relative;
-            transition: var(--transition);
-        }
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 18px;
-        }
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-        }
-        .new-chat-btn {
-            width: calc(100% - 20px);
-            margin: 12px 10px;
-            padding: 10px;
-            background: var(--accent);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: var(--transition);
-        }
-        .new-chat-btn:hover {
-            background: var(--accent-hover);
-            transform: scale(1.02);
-        }
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        .chat-item {
-            padding: 10px 12px;
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: var(--transition);
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .chat-item:hover { background: var(--bg-hover); }
-        .chat-item.active { background: var(--bg-card); border: 1px solid var(--border-color); }
-        .chat-item-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    .sidebar-nav-group {
+      padding: 0 0.65rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .sidebar-nav-btn {
+      padding: 0.52rem 0.7rem;
+      border-radius: 0.75rem;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+    .sidebar-nav-btn:hover { background: var(--bg-hover); }
+    .sidebar-nav-btn.active { background: var(--bg2); font-weight: 600; border-color: var(--border); }
+    .sidebar-nav-btn i { width: 1.1rem; text-align: center; color: var(--text2); font-size: 0.82rem; }
 
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-primary);
-            min-width: 0;
-        }
-        .header {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-secondary);
-        }
-        .header-left { display: flex; align-items: center; gap: 16px; }
-        .header-left .model-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: var(--transition);
-        }
-        .header-left .model-selector:hover { border-color: var(--text-secondary); }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .header-right .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #22c55e;
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
+    .sidebar-search {
+      margin: 0 0.6rem 0.55rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.7rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 0.8rem;
+    }
+    .sidebar-search:focus-within { border-color: var(--accent); }
+    .sidebar-search input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.8rem;
+      color: var(--text);
+      font-family: inherit;
+    }
 
-        .chat-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.2rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .history-item {
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.65rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    .history-item:hover { background: var(--bg-hover); }
+    .history-item.active { background: var(--bg2); font-weight: 600; border-left: 3px solid var(--accent); }
+    .history-item-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-actions { display: flex; gap: 0.15rem; opacity: 0; }
+    .history-item:hover .history-actions { opacity: 1; }
+    .history-action-btn { background: none; border: none; cursor: pointer; color: var(--text2); padding: 0.25rem; font-size: 0.68rem; border-radius: 0.35rem; }
+    .history-action-btn:hover { color: #ef4444; }
 
-        /* ===== MESSAGES ===== */
-        .message {
-            display: flex;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .message.user { flex-direction: row-reverse; }
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-        }
-        .message.user .message-avatar {
-            background: var(--accent);
-            color: var(--bg-primary);
-        }
-        .message-content {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        .message.ai .message-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-        }
-        .message.user .message-content {
-            background: var(--accent);
-            color: var(--bg-primary);
-        }
+    .sidebar-footer {
+      padding: 0.55rem 0.65rem;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--bg-sidebar);
+    }
+    .google-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      flex: 1;
+      justify-content: center;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .google-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+    .google-btn img { width: 0.9rem; height: 0.9rem; }
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      cursor: pointer;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.7rem;
+      min-width: 0;
+      position: relative;
+    }
+    .sidebar-user:hover { background: var(--bg-hover); }
+    .sidebar-user img { width: 1.75rem; height: 1.75rem; border-radius: 50%; object-fit: cover; }
+    .sidebar-user-name { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .signout-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      box-shadow: var(--shadow-lg);
+      padding: 0.35rem;
+      display: none;
+      z-index: 30;
+      margin-bottom: 0.3rem;
+    }
+    .signout-dropdown.show { display: block; }
+    .signout-btn {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.8rem;
+      color: #ef4444;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .signout-btn:hover { background: rgba(239, 68, 68, 0.08); }
+    .settings-btn-circle {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 50%;
+      background: var(--bg);
+      color: var(--text2);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .settings-btn-circle:hover { background: var(--bg-hover); color: var(--text); border-color: var(--accent); }
 
-        /* ===== INPUT AREA ===== */
-        .input-area {
-            padding: 16px 24px;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-        }
-        .input-wrapper {
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 8px 12px;
-            transition: var(--transition);
-        }
-        .input-wrapper:focus-within { border-color: var(--text-secondary); }
-        .input-wrapper textarea {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 14px;
-            resize: none;
-            padding: 4px 0;
-            font-family: inherit;
-            min-height: 24px;
-            max-height: 150px;
-        }
-        .input-wrapper textarea::placeholder { color: var(--text-secondary); }
-        .input-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .input-actions button {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 8px;
-            transition: var(--transition);
-            font-size: 16px;
-        }
-        .input-actions button:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .input-actions .send-btn {
-            background: var(--accent);
-            color: var(--bg-primary);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .input-actions .send-btn:hover { background: var(--accent-hover); }
-        .input-actions .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .input-actions .stop-btn {
-            background: #ef4444;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: none;
-            animation: pulse 1.5s infinite;
-        }
-        .input-actions .stop-btn.visible { display: inline-flex; }
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      min-width: 0;
+      position: relative;
+    }
 
-        /* ===== SSR CONTENT - FULLY VISIBLE TO SCRAPERS ===== */
-        .ssr-content {
-            padding: 40px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        .ssr-content h1 {
-            font-size: 32px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .ssr-content h2 {
-            font-size: 24px;
-            margin: 24px 0 12px;
-            color: var(--text-primary);
-        }
-        .ssr-content h3 {
-            font-size: 18px;
-            margin: 16px 0 8px;
-            color: var(--text-secondary);
-        }
-        .ssr-content p {
-            margin: 8px 0;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-        .ssr-content ul, .ssr-content ol {
-            padding-left: 24px;
-            margin: 8px 0;
-            color: var(--text-secondary);
-        }
-        .ssr-content li { margin: 4px 0; }
-        .ssr-content .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 16px 0;
-        }
-        .ssr-content .feature-card {
-            padding: 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-        }
-        .ssr-content .feature-card .icon { font-size: 28px; margin-bottom: 8px; }
-        .ssr-content .feature-card h4 { font-size: 14px; margin-bottom: 4px; }
-        .ssr-content .feature-card p { font-size: 12px; color: var(--text-secondary); }
-        .ssr-content .model-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 8px 0;
-        }
-        .ssr-content .model-badge {
-            padding: 4px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        .ssr-content code {
-            background: var(--bg-card);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .ssr-content pre {
-            background: var(--bg-card);
-            padding: 16px;
-            border-radius: var(--radius);
-            overflow-x: auto;
-            margin: 8px 0;
-        }
-        .ssr-content hr {
-            border: none;
-            border-top: 1px solid var(--border-color);
-            margin: 24px 0;
-        }
-        .ssr-content .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 4px;
-        }
-        .badge-latest { background: #3b82f6; color: white; }
-        .badge-stable { background: #22c55e; color: white; }
-        .badge-fast { background: #f59e0b; color: white; }
-        .badge-powerful { background: #8b5cf6; color: white; }
-        .badge-cheap { background: #06b6d4; color: white; }
-        .badge-reason { background: #ec4899; color: white; }
-        .badge-free { background: #10b981; color: white; }
-        .badge-open { background: #6b7280; color: white; }
-        .badge-vision { background: #6366f1; color: white; }
+    .chat-header {
+      height: var(--header-height);
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--bg);
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 0.6rem; }
+    
+    .model-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.65rem;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 0.8rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: all 0.2s;
+      height: 2.1rem;
+    }
+    .model-trigger:hover { border-color: var(--accent); background: var(--bg-hover); }
 
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .ssr-content { padding: 20px; }
-            .ssr-content h1 { font-size: 24px; }
-            .ssr-content .feature-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    .model-dropdown {
+      position: absolute;
+      top: calc(100% + 0.45rem);
+      left: 1rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow-lg);
+      width: 320px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      padding: 0.4rem;
+    }
+    .model-dropdown.show { display: block; }
+    .model-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    .model-option:hover { background: var(--bg-hover); }
+    .model-option.selected { background: var(--bg2); font-weight: 600; }
+
+    /* Workspace Body: Split between Chat/Editor and Configuration Panel */
+    .workspace-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chat-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Studio Tuning Mode Bar */
+    .studio-tuning-bar {
+      padding: 0.5rem 1rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.8rem;
+    }
+    .tuning-tab {
+      padding: 0.3rem 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text2);
+      background: transparent;
+      border: none;
+    }
+    .tuning-tab.active { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      align-items: center;
+    }
+
+    .message-row {
+      width: 100%;
+      max-width: 48rem;
+      display: flex;
+      gap: 0.85rem;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .message-row.user { justify-content: flex-end; }
+    .message-avatar {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+    .user-row .message-avatar { display: none; }
+    .message-content {
+      max-width: 85%;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+    .user-row .message-content {
+      background: var(--bubble-user);
+      color: var(--bubble-user-text);
+      padding: 0.75rem 1.1rem;
+      border-radius: 1.1rem;
+      font-weight: 500;
+    }
+    .ai-content {
+      width: 100%;
+      color: var(--text);
+      background: transparent;
+      padding: 0.15rem 0;
+    }
+    .ai-content pre {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 1rem;
+      border-radius: 0.6rem;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+      font-size: 0.8rem;
+      position: relative;
+    }
+    .code-actions {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      display: flex;
+      gap: 0.3rem;
+    }
+    .code-actions button {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ccc;
+      padding: 0.3rem 0.55rem;
+      border-radius: 0.4rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .code-actions button:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+    /* Composer */
+    .input-container {
+      padding: 0.5rem 1rem 1.1rem;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .input-wrapper {
+      width: 100%;
+      max-width: 48rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 1.6rem;
+      padding: 0.6rem 0.65rem 0.5rem 0.9rem;
+      box-shadow: var(--composer-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      transition: all 0.2s;
+    }
+    .input-wrapper:focus-within { border-color: var(--accent); box-shadow: var(--composer-shadow), 0 0 0 2px rgba(13,13,13,0.08); }
+    #userInput {
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.95rem;
+      color: var(--text);
+      resize: none;
+      max-height: 9rem;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+    .input-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 0.15rem;
+    }
+    .input-actions { display: flex; align-items: center; gap: 0.4rem; }
+    .action-btn {
+      width: 2.05rem;
+      height: 2.05rem;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .action-btn:hover { background: var(--bg2); color: var(--text); border-color: var(--accent); }
+    .send-btn {
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border: none;
+      font-weight: 600;
+    }
+    .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+    /* Landing Screen */
+    .landing-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .landing-title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .landing-subtitle { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; max-width: 500px; }
+    .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.55rem; max-width: 620px; width: 100%; }
+    .suggestion-card {
+      padding: 1rem 1.05rem;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      border-radius: 1.2rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .suggestion-card:hover { background: var(--bg2); border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .suggestion-card i { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text); }
+    .suggestion-card h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .suggestion-card p { font-size: 0.75rem; color: var(--text2); }
+
+    /* Right Config Panel (Google AI Studio Parameters) */
+    .config-panel {
+      width: var(--panel-width);
+      height: 100%;
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: transform 0.2s ease;
+    }
+    .config-panel.closed { transform: translateX(100%); width: 0; overflow: hidden; border-left: none; }
+    .config-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .config-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .config-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .config-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .config-input, .config-select, .config-textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 0.6rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .config-textarea { resize: vertical; min-height: 80px; }
+    .config-input:focus, .config-select:focus, .config-textarea:focus { border-color: var(--accent); }
+    .range-slider-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+    .range-slider-wrapper input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+    .range-value { font-size: 0.8rem; font-weight: 600; min-width: 2.5rem; text-align: right; }
+
+    /* Live Preview & Code Exporter Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      width: min(750px, 92vw);
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    
+    .preview-iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      background: white;
+    }
+
+    @media(max-width: 900px) {
+      .config-panel { position: fixed; right: 0; z-index: 30; height: calc(100vh - var(--header-height)); top: var(--header-height); }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- ===== SIDEBAR ===== -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">⧩</div>
-                Notal Studio
-            </div>
-        </div>
-        <button class="new-chat-btn"><i class="fas fa-plus"></i> New Chat</button>
-        <div class="chat-list">
-            <div class="chat-item active">
-                <span class="chat-item-title">Welcome to Notal Studio</span>
-            </div>
-            <div class="chat-item">
-                <span class="chat-item-title">API Integration Guide</span>
-            </div>
-            <div class="chat-item">
-                <span class="chat-item-title">Image Generation Demo</span>
-            </div>
-        </div>
-        <div class="sidebar-footer">
-            <div style="font-size:12px;color:var(--text-secondary);flex:1;">
-                <i class="fas fa-circle" style="color:#22c55e;font-size:8px;"></i> Online
-            </div>
-        </div>
+<div class="app-container">
+  <!-- 1. SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" id="studioLogo" title="Go to Main Chat">
+        <div class="logo-icon">⧩</div>
+        <span>Notal AI Studio</span>
+      </div>
+      <button class="action-btn" id="closeSidebarBtn" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <button class="btn-primary" id="newChatBtn">
+      <i class="fas fa-plus"></i> New Prompt Session
+    </button>
+
+    <div class="sidebar-nav-group">
+      <button class="sidebar-nav-btn active" id="navChats"><i class="fas fa-comments"></i> Prompt Sessions</button>
+      <button class="sidebar-nav-btn" id="navTemplates"><i class="fas fa-book-open"></i> Prompt Templates</button>
+      <a href="chat.html" class="sidebar-nav-btn"><i class="fas fa-message"></i> Main Chat</a>
+      <button class="sidebar-nav-btn" id="navSettings"><i class="fas fa-key"></i> API Keys & Settings</button>
     </div>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <div class="main-content">
-        <div class="header">
-            <div class="header-left">
-                <div class="model-selector">
-                    <i class="fas fa-robot"></i>
-                    <span>Gemini 3.1 Flash</span>
-                    <i class="fas fa-chevron-down" style="font-size:10px;"></i>
-                </div>
-            </div>
-            <div class="header-right">
-                <span class="status-dot"></span>
-                <span style="font-size:12px;color:var(--text-secondary);">Ready</span>
-            </div>
-        </div>
-
-        <!-- ===== SSR CONTENT - FULLY RENDERED FOR SCRAPERS ===== -->
-        <div class="chat-area">
-            <div class="ssr-content">
-                <h1>
-                    <span style="font-size:48px;">⧩</span> 
-                    Notal AI Studio
-                    <span class="badge badge-latest">v3.0</span>
-                </h1>
-                <p style="font-size:18px;color:var(--text-secondary);">
-                    A complete AI development platform with 15+ models, image generation, vision analysis, and web browsing.
-                    <span class="badge badge-free">100% Free</span>
-                    <span class="badge badge-stable">Privacy-First</span>
-                </p>
-                <hr>
-
-                <!-- ===== FEATURES ===== -->
-                <h2>🚀 Features</h2>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="icon">💬</div>
-                        <h4>Multi-Model Chat</h4>
-                        <p>Switch between 15+ AI models including GPT-4o, Claude 3.5, DeepSeek, Gemini, and Llama</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🎨</div>
-                        <h4>Image Generation</h4>
-                        <p>Create images with DALL-E, Stable Diffusion, and Imagen 3</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">👁️</div>
-                        <h4>Vision Analysis</h4>
-                        <p>Upload and analyze images with GPT-4o, Claude, and Gemini</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🌐</div>
-                        <h4>Web Browsing</h4>
-                        <p>Browse and extract content from any website</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">💻</div>
-                        <h4>Code Generation</h4>
-                        <p>Generate code in any language with live preview</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">📎</div>
-                        <h4>File Upload</h4>
-                        <p>Upload images, PDFs, text files, and code files</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🧠</div>
-                        <h4>Thinking Animation</h4>
-                        <p>ChatGPT-style thinking with stage indicators</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">🔒</div>
-                        <h4>Local-First</h4>
-                        <p>All data stored locally in your browser</p>
-                    </div>
-                </div>
-
-                <hr>
-
-                <!-- ===== MODELS ===== -->
-                <h2>🤖 Available Models</h2>
-                
-                <h3>Google Gemini (Native API)</h3>
-                <div class="model-list">
-                    <span class="model-badge">Gemini 3.6 Flash <span class="badge badge-latest">Latest</span></span>
-                    <span class="model-badge">Gemini 3.5 Flash <span class="badge badge-stable">Stable</span></span>
-                    <span class="model-badge">Gemini 3.5 Lite <span class="badge badge-fast">Fast</span></span>
-                    <span class="model-badge">Gemini 3.1 Pro <span class="badge badge-powerful">Powerful</span></span>
-                    <span class="model-badge">Gemini 3.1 Flash <span class="badge badge-fast">Fast</span></span>
-                    <span class="model-badge">Gemini 2.0 Flash <span class="badge badge-free">Free</span></span>
-                    <span class="model-badge">Gemini 1.5 Pro <span class="badge badge-vision">Vision</span></span>
-                    <span class="model-badge">Gemini 1.5 Flash <span class="badge badge-fast">Fast</span></span>
-                </div>
-
-                <h3>DeepSeek (Native API)</h3>
-                <div class="model-list">
-                    <span class="model-badge">DeepSeek V3 <span class="badge badge-cheap">Cheap</span></span>
-                    <span class="model-badge">DeepSeek R1 <span class="badge badge-reason">Reason</span></span>
-                    <span class="model-badge">DeepSeek Coder <span class="badge badge-powerful">Coding</span></span>
-                </div>
-
-                <h3>OpenAI</h3>
-                <div class="model-list">
-                    <span class="model-badge">GPT-4o <span class="badge badge-vision">Vision</span></span>
-                    <span class="model-badge">GPT-4o Mini <span class="badge badge-fast">Fast</span></span>
-                    <span class="model-badge">DALL-E 3 <span class="badge badge-latest">Image Gen</span></span>
-                </div>
-
-                <h3>OpenRouter (Claude, Mistral, Llama, Qwen)</h3>
-                <div class="model-list">
-                    <span class="model-badge">Claude 3.5 Sonnet <span class="badge badge-powerful">Vision</span></span>
-                    <span class="model-badge">Mistral Large 2 <span class="badge badge-smart">Smart</span></span>
-                    <span class="model-badge">Llama 3.2 90B Vision <span class="badge badge-vision">Vision</span></span>
-                    <span class="model-badge">Llama 3.1 70B <span class="badge badge-open">Open</span></span>
-                    <span class="model-badge">Qwen 2.5 72B <span class="badge badge-powerful">Powerful</span></span>
-                    <span class="model-badge">SD 3.5 <span class="badge badge-latest">Image Gen</span></span>
-                    <span class="model-badge">Imagen 3 <span class="badge badge-latest">Image Gen</span></span>
-                </div>
-
-                <hr>
-
-                <!-- ===== API CONFIGURATION ===== -->
-                <h2>🔑 API Configuration</h2>
-                <p>Add your API keys in Settings to start using the models:</p>
-                <ul>
-                    <li><strong>Google Gemini:</strong> <code>AIza...</code> - Get from <a href="https://ai.google.dev/" target="_blank" style="color:var(--accent);">ai.google.dev</a></li>
-                    <li><strong>DeepSeek:</strong> <code>sk-...</code> - Get from <a href="https://platform.deepseek.com/" target="_blank" style="color:var(--accent);">platform.deepseek.com</a></li>
-                    <li><strong>OpenAI:</strong> <code>sk-proj-...</code> - Get from <a href="https://platform.openai.com/" target="_blank" style="color:var(--accent);">platform.openai.com</a></li>
-                    <li><strong>OpenRouter:</strong> <code>sk-or-v1-...</code> - Get from <a href="https://openrouter.ai/" target="_blank" style="color:var(--accent);">openrouter.ai</a></li>
-                </ul>
-
-                <hr>
-
-                <!-- ===== TECHNICAL DETAILS ===== -->
-                <h2>⚙️ Technical Details</h2>
-                <h3>Architecture</h3>
-                <ul>
-                    <li><strong>Hosting:</strong> GitHub Pages (Serverless)</li>
-                    <li><strong>Runtime:</strong> 100% Client-Side (Browser)</li>
-                    <li><strong>Data Storage:</strong> localStorage (Privacy-First)</li>
-                    <li><strong>API Integration:</strong> Native API calls to each provider</li>
-                    <li><strong>Framework:</strong> Vanilla JavaScript + Font Awesome</li>
-                </ul>
-
-                <h3>Features</h3>
-                <ul>
-                    <li><strong>Chat:</strong> Real-time conversation with AI models</li>
-                    <li><strong>Image Generation:</strong> DALL-E, Stable Diffusion, Imagen 3</li>
-                    <li><strong>Vision:</strong> Image analysis with GPT-4o, Claude, Gemini</li>
-                    <li><strong>Web Browsing:</strong> Fetch and parse web pages via CORS proxies</li>
-                    <li><strong>Code Preview:</strong> Live HTML preview in iframe</li>
-                    <li><strong>Thinking Animation:</strong> ChatGPT-style with stage indicators</li>
-                    <li><strong>File Upload:</strong> Images, PDFs, text, and code files</li>
-                    <li><strong>Dark/Light Theme:</strong> Toggle between themes</li>
-                    <li><strong>Chat History:</strong> Save and load conversations</li>
-                </ul>
-
-                <hr>
-
-                <!-- ===== SCREENSHOT/DEMO ===== -->
-                <h2>📸 Quick Start</h2>
-                <ol>
-                    <li><strong>Open</strong> <code>https://batbleseed.github.io/Notal-ai/studio.html</code></li>
-                    <li><strong>Add API Key</strong> in Settings (⚙️ icon)</li>
-                    <li><strong>Select Model</strong> from the dropdown</li>
-                    <li><strong>Start Chatting!</strong> Try commands like:
-                        <ul>
-                            <li><code>Generate an image of a futuristic city</code></li>
-                            <li><code>Browse https://example.com</code></li>
-                            <li><code>Write a Python function to sort a list</code></li>
-                            <li>Upload an image and ask "What's in this image?"</li>
-                        </ul>
-                    </li>
-                </ol>
-
-                <hr>
-
-                <!-- ===== FOOTER ===== -->
-                <div style="text-align:center;padding:20px 0;color:var(--text-secondary);font-size:12px;border-top:1px solid var(--border-color);">
-                    <p>Notal AI Studio v3.0 • <a href="https://github.com/batbleseed/Notal-ai" target="_blank" style="color:var(--accent);">GitHub</a> • 
-                    <a href="https://batbleseed.github.io/Notal-ai/" target="_blank" style="color:var(--accent);">Home</a> • 
-                    <a href="#" style="color:var(--accent);">Privacy Policy</a></p>
-                    <p style="margin-top:4px;">Made with ❤️ • 100% Client-Side • No Data Collection</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== INPUT AREA ===== -->
-        <div class="input-area">
-            <div class="input-wrapper">
-                <textarea rows="1" placeholder="Type a message..."></textarea>
-                <div class="input-actions">
-                    <button><i class="fas fa-paperclip"></i></button>
-                    <button class="stop-btn" style="display:none;"><i class="fas fa-stop"></i> Stop</button>
-                    <button class="send-btn"><i class="fas fa-arrow-up"></i> Send</button>
-                </div>
-            </div>
-        </div>
+    <div class="sidebar-search">
+      <i class="fas fa-search" style="color:var(--text2);font-size:0.75rem;"></i>
+      <input type="text" id="chatSearch" placeholder="Search prompts...">
     </div>
 
+    <div class="chat-history" id="chatHistory"></div>
+
+    <div class="sidebar-footer">
+      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Sign in</button></div>
+      <div id="sidebarUserProfile" style="display:none;flex:1;position:relative;">
+        <div class="sidebar-user" id="userProfileBtn"><img id="sidebarUserAvatar" src="" alt="U"><span class="sidebar-user-name" id="sidebarUserName"></span></div>
+        <div class="signout-dropdown" id="signoutDropdown"><button class="signout-btn" id="signoutConfirmBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></div>
+      </div>
+      <button class="settings-btn-circle" id="themeToggleBtn" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+    </div>
+  </aside>
+
+  <!-- 2. MAIN CONTENT -->
+  <main class="main-content">
+    <header class="chat-header">
+      <div class="header-left">
+        <button class="action-btn" id="toggleSidebarBtn"><i class="fas fa-bars"></i></button>
+        <div style="position:relative;">
+          <button class="model-trigger" id="modelTrigger">
+            <span id="selectedModelName">Gemini 3.5 Flash</span>
+            <i class="fas fa-chevron-down" style="font-size:0.65rem;color:var(--text2);margin-left:0.2rem;"></i>
+          </button>
+          <div class="model-dropdown" id="modelDropdown"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.6rem;">
+        <button class="action-btn" id="exportCodeBtn" title="Get Code / Export"><i class="fas fa-code"></i></button>
+        <button class="action-btn" id="previewToggleBtn" title="Live Preview IDE"><i class="fas fa-desktop"></i></button>
+        <button class="action-btn" id="toggleConfigBtn" title="Toggle AI Parameters"><i class="fas fa-sliders"></i></button>
+      </div>
+    </header>
+
+    <div class="workspace-body">
+      <div class="chat-pane">
+        <!-- Studio Tuning Mode Bar -->
+        <div class="studio-tuning-bar">
+          <span>Mode:</span>
+          <button class="tuning-tab active" data-mode="chat">Chat Prompt</button>
+          <button class="tuning-tab" data-mode="freeform">Freeform Completion</button>
+          <div style="margin-left:auto;display:flex;gap:1rem;color:var(--text2);">
+            <span id="tokenCountDisplay">Tokens: 0</span>
+            <span id="latencyDisplay">Latency: --</span>
+          </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer"></div>
+
+        <div class="input-container">
+          <div class="input-wrapper">
+            <textarea id="userInput" placeholder="Write a prompt or ask Notal AI Studio anything..." rows="1"></textarea>
+            <div class="input-bottom">
+              <div style="display:flex;gap:0.4rem;">
+                <button class="action-btn" id="attachBtn" title="Attach file or image"><i class="fas fa-paperclip"></i></button>
+                <input type="file" id="fileInput" style="display:none;" multiple accept="image/*,.txt,.js,.ts,.html,.css,.json,.md">
+                <button class="action-btn" id="micBtn" title="Voice Dictation"><i class="fas fa-microphone"></i></button>
+              </div>
+              <div class="input-actions">
+                <button class="action-btn send-btn" id="sendBtn" title="Run Prompt"><i class="fas fa-arrow-up"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. CONFIGURATION PANEL (Google AI Studio Parameters) -->
+      <aside class="config-panel" id="configPanel">
+        <div class="config-header">
+          <span><i class="fas fa-sliders"></i> Prompt Tuning & Config</span>
+          <button class="action-btn" id="closeConfigBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="config-body">
+          <div class="config-group">
+            <label class="config-label">System Instructions</label>
+            <textarea class="config-textarea" id="systemInstruction" placeholder="You are a helpful AI assistant and expert coder..."></textarea>
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">
+              <span>Temperature</span>
+              <span class="range-value" id="tempVal">1.00</span>
+            </label>
+            <div class="range-slider-wrapper">
+              <input type="range" id="tempRange" min="0" max="2" step="0.05" value="1.0">
+            </div>
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">
+              <span>Top-P</span>
+              <span class="range-value" id="topPVal">0.95</span>
+            </label>
+            <div class="range-slider-wrapper">
+              <input type="range" id="topPRange" min="0" max="1" step="0.05" value="0.95">
+            </div>
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">
+              <span>Top-K</span>
+              <span class="range-value" id="topKVal">40</span>
+            </label>
+            <div class="range-slider-wrapper">
+              <input type="range" id="topKRange" min="1" max="100" step="1" value="40">
+            </div>
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">Max Output Tokens</label>
+            <input type="number" class="config-input" id="maxTokens" value="8192" min="256" max="32768">
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">Response Format</label>
+            <select class="config-select" id="responseFormat">
+              <option value="text">Default Text / Markdown</option>
+              <option value="json">JSON Object (Structured Output)</option>
+            </select>
+          </div>
+
+          <div class="config-group">
+            <label class="config-label">Safety Thresholds</label>
+            <select class="config-select" id="safetyLevel">
+              <option value="block_none">Block None (Permissive)</option>
+              <option value="block_low" selected>Block Few / Medium</option>
+              <option value="block_high">Block Most (Strict)</option>
+            </select>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- 4. MODALS (Live Preview, Code Export, Settings) -->
+<div class="modal-backdrop" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-desktop"></i> Live IDE App Preview</h3>
+      <button class="action-btn" id="closePreviewModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <iframe class="preview-iframe" id="previewIframe" sandbox="allow-scripts allow-modals"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="codeExportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-code"></i> Get Code / API Exporter</h3>
+      <button class="action-btn" id="closeCodeModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="config-group">
+        <label class="config-label">Select Language / SDK</label>
+        <select class="config-select" id="codeLangSelect">
+          <option value="python">Python (@google/genai)</option>
+          <option value="javascript">JavaScript / Node.js</option>
+          <option value="curl">cURL (REST API)</option>
+          <option value="python_openai">Python (OpenAI SDK)</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label class="config-label">Generated Request Code</label>
+        <pre id="exportedCodePre" style="background:#1a1a1a;color:#e0e0e0;padding:1rem;border-radius:0.6rem;overflow-x:auto;font-size:0.8rem;max-height:300px;"><code>Select a model and run a prompt to view code.</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-key"></i> API Keys & Studio Settings</h3>
+      <button class="action-btn" id="closeSettingsModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="config-group">
+        <label class="config-label">Google Gemini API Key</label>
+        <input type="password" class="config-input" id="keyGoogle" placeholder="AIza...">
+      </div>
+      <div class="config-group">
+        <label class="config-label">OpenAI API Key</label>
+        <input type="password" class="config-input" id="keyOpenai" placeholder="sk-proj-...">
+      </div>
+      <div class="config-group">
+        <label class="config-label">DeepSeek API Key</label>
+        <input type="password" class="config-input" id="keyDeepseek" placeholder="sk-...">
+      </div>
+      <div class="config-group">
+        <label class="config-label">OpenRouter API Key</label>
+        <input type="password" class="config-input" id="keyOpenrouter" placeholder="sk-or-v1-...">
+      </div>
+      <button class="btn-primary" id="saveSettingsBtn" style="margin-top:0.5rem;">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="templatesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-book-open"></i> Google AI Studio Prompt Library</h3>
+      <button class="action-btn" id="closeTemplatesModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="templatesList" style="display:grid;grid-template-columns:1fr;gap:0.75rem;">
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- SCRIPT LOGIC -->
+<script>
+  (function () {
+    "use strict";
+
+    const NOTAL_API_URL = "https://notal-ai-backend.hotfinixbrave.workers.dev/api/chat";
+
+    const models = [
+      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", provider: "google", badge: "Fast & Multimodal" },
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "google", badge: "Deep Reasoning" },
+      { id: "notal-local", name: "Notal AI Workspace", provider: "notalai-space", badge: "Built-in" },
+      { id: "gpt-4o", name: "GPT-4o", provider: "openai", badge: "Vision" },
+      { id: "deepseek-chat", name: "DeepSeek V3", provider: "deepseek", badge: "Fast Coder" },
+      { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", provider: "openrouter", badge: "Expert Writer" }
+    ];
+
+    const promptTemplates = [
+      { title: "Full-Stack Web App Generator", prompt: "Build a fully functional, stunning web application in a single HTML file with embedded Tailwind CSS and interactive JavaScript. App idea: " },
+      { title: "Code Refactor & Bug Finder", prompt: "Review the following code for bugs, security issues, performance bottlenecks, and refactor it into clean, idiomatic code:\n\n```javascript\n\n```" },
+      { title: "Data Extraction & JSON Parser", prompt: "Extract all entities, structured metrics, and key data points from the following text and return strictly valid JSON according to schema: " },
+      { title: "Creative Storytelling & Ideation", prompt: "Brainstorm 10 innovative, creative concepts and detailed outlines for: " }
+    ];
+
+    let currentModel = models[0];
+    let chats = JSON.parse(localStorage.getItem("notal_studio_v3_chats") || "[]");
+    let currentChatId = localStorage.getItem("notal_studio_v3_current") || null;
+    let keys = JSON.parse(localStorage.getItem("notal_studio_v3_keys") || "{}");
+    let isDark = localStorage.getItem("notal_studio_v3_dark") === "true";
+    let systemInstructionText = localStorage.getItem("notal_studio_v3_sys") || "";
+    let temperatureVal = 1.0;
+    let topPVal = 0.95;
+    let topKVal = 40;
+    let maxTokensVal = 8192;
+    let googleUser = JSON.parse(localStorage.getItem("notal_google_user") || "null");
+
+    const $ = id => document.getElementById(id);
+
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function handleGoogleCredential(response) {
+      try {
+        const payload = parseJwt(response.credential);
+        if (payload) {
+          googleUser = {
+            id: payload.sub,
+            name: payload.name,
+            email: payload.email,
+            picture: payload.picture || ""
+          };
+          localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
+          updateUserUI();
+        }
+      } catch (e) { console.error(e); }
+    }
+    window.handleGoogleCredential = handleGoogleCredential;
+
+    function updateUserUI() {
+      const signIn = $("sidebarGoogleSignin");
+      const profile = $("sidebarUserProfile");
+      if (googleUser) {
+        if (signIn) signIn.style.display = "none";
+        if (profile) {
+          profile.style.display = "flex";
+          if ($("sidebarUserAvatar")) $("sidebarUserAvatar").src = googleUser.picture || "";
+          if ($("sidebarUserName")) $("sidebarUserName").textContent = googleUser.name || "Google User";
+        }
+      } else {
+        if (signIn) signIn.style.display = "flex";
+        if (profile) profile.style.display = "none";
+      }
+    }
+
+    function initGoogleAuth() {
+      if (window.google && window.google.accounts) {
+        google.accounts.id.initialize({
+          client_id: "524364273952-7gqtr9pdujlahhbt3b35p6p9be369gh0.apps.googleusercontent.com",
+          callback: handleGoogleCredential
+        });
+        const signInBtn = $("googleSigninBtn");
+        if (signInBtn) {
+          signInBtn.addEventListener("click", () => {
+            google.accounts.id.prompt();
+          });
+        }
+      } else {
+        setTimeout(initGoogleAuth, 500);
+      }
+    }
+
+    function init() {
+      if (isDark) document.body.classList.add("theme-dark");
+      $("systemInstruction").value = systemInstructionText;
+      updateUserUI();
+      initGoogleAuth();
+      renderModelDropdown();
+      renderHistory();
+      renderTemplates();
+
+      if (currentChatId && chats.some(c => c.id === currentChatId)) {
+        loadChat(currentChatId);
+      } else if (chats.length > 0) {
+        loadChat(chats[0].id);
+      } else {
+        showLanding();
+      }
+
+      setupEvents();
+    }
+
+    function renderModelDropdown() {
+      const dd = $("modelDropdown");
+      if (!dd) return;
+      dd.innerHTML = models.map(m => `
+        <div class="model-option ${m.id === currentModel.id ? 'selected' : ''}" data-id="${m.id}">
+          <i class="fas fa-robot" style="color:var(--text2);"></i>
+          <div style="flex:1;">
+            <div style="font-weight:600;">${m.name}</div>
+            <div style="font-size:0.7rem;color:var(--text2);">${m.badge}</div>
+          </div>
+          ${m.id === currentModel.id ? '<i class="fas fa-check" style="color:var(--text);"></i>' : ''}
+        </div>
+      `).join("");
+
+      dd.querySelectorAll(".model-option").forEach(opt => {
+        opt.addEventListener("click", () => {
+          const m = models.find(x => x.id === opt.dataset.id);
+          if (m) {
+            currentModel = m;
+            $("selectedModelName").textContent = m.name;
+            dd.classList.remove("show");
+            renderModelDropdown();
+          }
+        });
+      });
+    }
+
+    function showLanding() {
+      const container = $("messagesContainer");
+      container.innerHTML = `
+        <div class="landing-screen">
+          <div class="logo-icon" style="width:3.5rem;height:3.5rem;font-size:1.8rem;margin:0 auto 1.2rem;border-radius:1rem;">⧩</div>
+          <div class="landing-title">Notal AI Studio</div>
+          <div class="landing-subtitle">Build AI applications, tune system instructions, test prompts with 15+ models, and preview code instantly.</div>
+          <div class="suggestions">
+            <div class="suggestion-card" data-prompt="Build a modern SaaS landing page in HTML and Tailwind CSS">
+              <i class="fas fa-code"></i>
+              <h4>Full-Stack App Generator</h4>
+              <p>Generate production-ready code with live IDE preview</p>
+            </div>
+            <div class="suggestion-card" data-prompt="Explain the mathematics behind transformer neural networks simply">
+              <i class="fas fa-brain"></i>
+              <h4>Deep Reasoning</h4>
+              <p>Explore complex technical topics with high temperature</p>
+            </div>
+          </div>
+        </div>
+      `;
+      container.querySelectorAll(".suggestion-card").forEach(card => {
+        card.addEventListener("click", () => {
+          $("userInput").value = card.dataset.prompt;
+          $("userInput").focus();
+        });
+      });
+    }
+
+    function renderHistory() {
+      const historyEl = $("chatHistory");
+      if (!historyEl) return;
+      historyEl.innerHTML = chats.map(c => `
+        <div class="history-item ${c.id === currentChatId ? 'active' : ''}" data-id="${c.id}">
+          <span class="history-item-title"><i class="fas fa-message" style="font-size:0.75rem;margin-right:0.4rem;color:var(--text2);"></i> ${escapeHtml(c.title)}</span>
+          <div class="history-actions">
+            <button class="history-action-btn del" data-id="${c.id}"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join("");
+
+      historyEl.querySelectorAll(".history-item").forEach(item => {
+        item.addEventListener("click", e => {
+          if (!e.target.closest(".del")) loadChat(item.dataset.id);
+        });
+      });
+
+      historyEl.querySelectorAll(".del").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          deleteChat(btn.dataset.id);
+        });
+      });
+    }
+
+    function renderTemplates() {
+      const list = $("templatesList");
+      if (!list) return;
+      list.innerHTML = promptTemplates.map(t => `
+        <div class="suggestion-card template-card" data-prompt="${escapeHtml(t.prompt)}">
+          <h4><i class="fas fa-sparkles" style="margin-right:0.4rem;color:var(--text);"></i>${escapeHtml(t.title)}</h4>
+          <p style="margin-top:0.3rem;">${escapeHtml(t.prompt)}</p>
+        </div>
+      `).join("");
+
+      list.querySelectorAll(".template-card").forEach(card => {
+        card.addEventListener("click", () => {
+          $("userInput").value = card.dataset.prompt;
+          $("templatesModal").classList.remove("show");
+          $("userInput").focus();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function createNewChat() {
+      const chat = { id: Date.now().toString(), title: "New Prompt Session", messages: [] };
+      chats.unshift(chat);
+      currentChatId = chat.id;
+      saveState();
+      renderHistory();
+      showLanding();
+    }
+
+    function loadChat(id) {
+      currentChatId = id;
+      saveState();
+      renderHistory();
+      const chat = chats.find(c => c.id === id);
+      if (!chat || !chat.messages.length) {
+        showLanding();
+        return;
+      }
+      const container = $("messagesContainer");
+      container.innerHTML = chat.messages.map(m => `
+        <div class="message-row ${m.role === 'user' ? 'user' : 'ai'}">
+          <div class="message-avatar">${m.role === 'user' ? 'U' : '⧩'}</div>
+          <div class="message-content ${m.role === 'ai' ? 'ai-content' : ''}">
+            ${m.role === 'user' ? escapeHtml(m.content) : formatMarkdown(m.content)}
+          </div>
+        </div>
+      `).join("");
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function deleteChat(id) {
+      chats = chats.filter(c => c.id !== id);
+      if (currentChatId === id) {
+        currentChatId = chats[0]?.id || null;
+        if (currentChatId) loadChat(currentChatId); else showLanding();
+      }
+      saveState();
+      renderHistory();
+    }
+
+    function saveState() {
+      localStorage.setItem("notal_studio_v3_chats", JSON.stringify(chats));
+      localStorage.setItem("notal_studio_v3_current", currentChatId || "");
+      localStorage.setItem("notal_studio_v3_keys", JSON.stringify(keys));
+      localStorage.setItem("notal_studio_v3_sys", systemInstructionText);
+    }
+
+    function formatMarkdown(text) {
+      let html = escapeHtml(text);
+      html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+        return `<div style="position:relative;"><div class="code-actions"><button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button></div><pre><code>${code.trim()}</code></pre></div>`;
+      });
+      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(/\n/g, "<br>");
+      return html;
+    }
+
+    async function handleSend() {
+      const input = $("userInput");
+      let prompt = input.value.trim();
+      if (!prompt) return;
+      input.value = "";
+      input.style.height = "auto";
+
+      if (!currentChatId) createNewChat();
+      let chat = chats.find(c => c.id === currentChatId);
+      if (!chat) {
+        createNewChat();
+        chat = chats[0];
+      }
+
+      if (chat.title === "New Prompt Session") {
+        chat.title = prompt.substring(0, 30) + (prompt.length > 30 ? "..." : "");
+      }
+
+      chat.messages.push({ role: "user", content: prompt });
+      saveState();
+      renderHistory();
+      loadChat(currentChatId);
+
+      const startTime = performance.now();
+      const container = $("messagesContainer");
+      const aiRow = document.createElement("div");
+      aiRow.className = "message-row ai";
+      aiRow.innerHTML = `<div class="message-avatar">⧩</div><div class="message-content ai-content"><span style="color:var(--text2);"><i class="fas fa-spinner fa-spin"></i> Generating response with ${currentModel.name}...</span></div>`;
+      container.appendChild(aiRow);
+      container.scrollTop = container.scrollHeight;
+
+      try {
+        let responseText = "";
+        let fullPrompt = systemInstructionText ? `System Instruction: ${systemInstructionText}\n\nUser: ${prompt}` : prompt;
+        
+        if (currentModel.provider === "notalai-space" || currentModel.provider === "google") {
+          const res = await fetch(NOTAL_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              message: fullPrompt, 
+              model: currentModel.id, 
+              history: chat.messages.slice(0, -1),
+              temperature: temperatureVal,
+              topP: topPVal,
+              maxTokens: maxTokensVal
+            })
+          });
+          const data = await res.json();
+          responseText = data.response || data.content || "No response received.";
+        } else {
+          const apiKey = keys[currentModel.provider];
+          if (!apiKey) {
+            responseText = `Please configure your API key for ${currentModel.provider} in Settings to use this model.`;
+          } else {
+            const provConfig = {
+              openai: "https://api.openai.com/v1/chat/completions",
+              deepseek: "https://api.deepseek.com/v1/chat/completions",
+              openrouter: "https://openrouter.ai/api/v1/chat/completions"
+            };
+            let messagesPayload = [];
+            if (systemInstructionText) {
+              messagesPayload.push({ role: "system", content: systemInstructionText });
+            }
+            messagesPayload.push(...chat.messages);
+
+            const res = await fetch(provConfig[currentModel.provider], {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+              body: JSON.stringify({ 
+                model: currentModel.id, 
+                messages: messagesPayload,
+                temperature: temperatureVal,
+                max_tokens: maxTokensVal
+              })
+            });
+            const data = await res.json();
+            responseText = data.choices?.[0]?.message?.content || JSON.stringify(data);
+          }
+        }
+
+        const endTime = performance.now();
+        const latency = Math.round(endTime - startTime);
+        $("latencyDisplay").textContent = `Latency: ${latency}ms`;
+        $("tokenCountDisplay").textContent = `Tokens: ~${Math.round((prompt.length + responseText.length) / 4)}`;
+
+        chat.messages.push({ role: "ai", content: responseText });
+        saveState();
+        loadChat(currentChatId);
+        checkForCodePreview(responseText);
+        updateCodeExporter(prompt, responseText);
+      } catch (err) {
+        aiRow.querySelector(".message-content").innerHTML = `<span style="color:#ef4444;">Error: ${escapeHtml(err.message)}</span>`;
+      }
+    }
+
+    function checkForCodePreview(text) {
+      const match = text.match(/```html\n([\s\S]*?)```/);
+      if (match && match[1]) {
+        const code = match[1];
+        const iframe = $("previewIframe");
+        iframe.srcdoc = code;
+      }
+    }
+
+    function updateCodeExporter(prompt, response) {
+      const lang = $("codeLangSelect").value;
+      let codeSnippet = "";
+      if (lang === "python") {
+        codeSnippet = `from google import genai\n\nclient = genai.Client(api_key="GEMINI_API_KEY")\nresponse = client.models.generate_content(\n    model="${currentModel.id}",\n    contents="${prompt.replace(/"/g, '\\"')}",\n    config={\n        'temperature': ${temperatureVal},\n        'system_instruction': "${(systemInstructionText || '').replace(/"/g, '\\"')}"\n    }\n)\nprint(response.text)`;
+      } else if (lang === "javascript") {
+        codeSnippet = `import { GoogleGenAI } from '@google/genai';\n\nconst ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });\nasync function main() {\n  const response = await ai.models.generateContent({\n    model: '${currentModel.id}',\n    contents: '${prompt.replace(/'/g, "\\'")}',\n    config: { temperature: ${temperatureVal} }\n  });\n  console.log(response.text);\n}\nmain();`;
+      } else if (lang === "curl") {
+        codeSnippet = `curl https://generativelanguage.googleapis.com/v1beta/models/${currentModel.id}:generateContent?key=GEMINI_API_KEY \\\n-H 'Content-Type: application/json' \\\n-d '{"contents":[{"parts":[{"text":"${prompt.replace(/"/g, '\\"')}"}]}]}'`;
+      } else {
+        codeSnippet = `from openai import OpenAI\n\nclient = OpenAI(api_key="${keys.openai || 'YOUR_KEY'}")\nresponse = client.chat.completions.create(\n    model="${currentModel.id}",\n    messages=[{"role": "user", "content": "${prompt.replace(/"/g, '\\"')}"}]\n)\nprint(response.choices[0].message.content)`;
+      }
+      $("exportedCodePre").querySelector("code").textContent = codeSnippet;
+    }
+
+    function setupEvents() {
+      $("sendBtn").addEventListener("click", handleSend);
+      $("userInput").addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      });
+
+      $("modelTrigger").addEventListener("click", e => {
+        e.stopPropagation();
+        $("modelDropdown").classList.toggle("show");
+      });
+      document.addEventListener("click", () => $("modelDropdown").classList.remove("show"));
+
+      $("newChatBtn").addEventListener("click", createNewChat);
+
+      $("themeToggleBtn").addEventListener("click", () => {
+        isDark = !isDark;
+        document.body.classList.toggle("theme-dark", isDark);
+        localStorage.setItem("notal_studio_v3_dark", isDark);
+      });
+
+      $("toggleSidebarBtn").addEventListener("click", () => $("sidebar").classList.toggle("closed"));
+      $("closeSidebarBtn").addEventListener("click", () => $("sidebar").classList.add("closed"));
+
+      if ($("studioLogo")) {
+        $("studioLogo").addEventListener("click", () => {
+          const logo = $("studioLogo");
+          logo.classList.add("disappearing");
+          setTimeout(() => {
+            window.location.href = "chat.html";
+          }, 280);
+        });
+      }
+
+      $("toggleConfigBtn").addEventListener("click", () => $("configPanel").classList.toggle("closed"));
+      $("closeConfigBtn").addEventListener("click", () => $("configPanel").classList.add("closed"));
+
+      $("previewToggleBtn").addEventListener("click", () => $("previewModal").classList.add("show"));
+      $("closePreviewModal").addEventListener("click", () => $("previewModal").classList.remove("show"));
+
+      $("exportCodeBtn").addEventListener("click", () => $("codeExportModal").classList.add("show"));
+      $("closeCodeModal").addEventListener("click", () => $("codeExportModal").classList.remove("show"));
+      $("codeLangSelect").addEventListener("change", () => updateCodeExporter("Sample prompt", "Sample response"));
+
+      $("navSettings").addEventListener("click", () => {
+        $("keyGoogle").value = keys.google || "";
+        $("keyOpenai").value = keys.openai || "";
+        $("keyDeepseek").value = keys.deepseek || "";
+        $("keyOpenrouter").value = keys.openrouter || "";
+        $("settingsModal").classList.add("show");
+      });
+      $("closeSettingsModal").addEventListener("click", () => $("settingsModal").classList.remove("show"));
+
+      $("saveSettingsBtn").addEventListener("click", () => {
+        keys.google = $("keyGoogle").value.trim();
+        keys.openai = $("keyOpenai").value.trim();
+        keys.deepseek = $("keyDeepseek").value.trim();
+        keys.openrouter = $("keyOpenrouter").value.trim();
+        saveState();
+        $("settingsModal").classList.remove("show");
+        alert("API keys saved successfully!");
+      });
+
+      $("navTemplates").addEventListener("click", () => $("templatesModal").classList.add("show"));
+      $("closeTemplatesModal").addEventListener("click", () => $("templatesModal").classList.remove("show"));
+
+      // Profile user button & signout dropdown
+      $("userProfileBtn")?.addEventListener("click", e => {
+        e.stopPropagation();
+        $("signoutDropdown")?.classList.toggle("show");
+      });
+      document.addEventListener("click", () => {
+        $("signoutDropdown")?.classList.remove("show");
+      });
+      $("signoutConfirmBtn")?.addEventListener("click", () => {
+        googleUser = null;
+        localStorage.removeItem("notal_google_user");
+        updateUserUI();
+        $("signoutDropdown")?.classList.remove("show");
+      });
+
+      // Sliders
+      $("tempRange").addEventListener("input", e => {
+        temperatureVal = parseFloat(e.target.value);
+        $("tempVal").textContent = temperatureVal.toFixed(2);
+      });
+      $("topPRange").addEventListener("input", e => {
+        topPVal = parseFloat(e.target.value);
+        $("topPVal").textContent = topPVal.toFixed(2);
+      });
+      $("topKRange").addEventListener("input", e => {
+        topKVal = parseInt(e.target.value);
+        $("topKVal").textContent = topKVal;
+      });
+      $("maxTokens").addEventListener("input", e => {
+        maxTokensVal = parseInt(e.target.value) || 8192;
+      });
+      $("systemInstruction").addEventListener("input", e => {
+        systemInstructionText = e.target.value;
+        saveState();
+      });
+
+      // Voice dictation
+      $("micBtn").addEventListener("click", () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          alert("Speech recognition is not supported in this browser.");
+          return;
+        }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.onresult = event => {
+          $("userInput").value = event.results[0][0].transcript;
+        };
+        recognition.start();
+      });
+
+      $("chatSearch").addEventListener("input", e => {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll(".history-item").forEach(item => {
+          const title = item.querySelector(".history-item-title").textContent.toLowerCase();
+          item.style.display = title.includes(q) ? "flex" : "none";
+        });
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  })();
+</script>
 </body>
 </html>
