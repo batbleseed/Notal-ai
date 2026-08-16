@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  function isMobileOrPortrait() {
+    return window.innerWidth <= 768 || (window.innerWidth <= 1024 && window.matchMedia("(orientation: portrait)").matches);
+  }
+
   // ============================================================
   // Notal AI - hmmmd.js
   // PART 1/3
@@ -1339,7 +1343,7 @@
     showLanding();
 
     if (
-      window.innerWidth <= 768
+      isMobileOrPortrait()
     ) {
       closeMobileSidebar();
     }
@@ -1373,7 +1377,7 @@
     saveState();
 
     if (
-      window.innerWidth <= 768
+      isMobileOrPortrait()
     ) {
       closeMobileSidebar();
     }
@@ -2491,7 +2495,7 @@
     }
 
     if (
-      window.innerWidth <= 768 &&
+      isMobileOrPortrait() &&
       mobilePreviewOverlay
     ) {
 
@@ -2716,9 +2720,11 @@
 
     sidebarOpen =
       false;
+    document.body.classList.remove("sidebar-open");
+    document.body.classList.add("sidebar-closed");
 
     if (
-      window.innerWidth >= 769 &&
+      !isMobileOrPortrait() &&
       toggleSidebarBtn
     ) {
 
@@ -2743,6 +2749,8 @@
 
     sidebarOpen =
       true;
+    document.body.classList.add("sidebar-open");
+    document.body.classList.remove("sidebar-closed");
 
     if (toggleSidebarBtn) {
 
@@ -2751,7 +2759,7 @@
     }
 
     if (
-      window.innerWidth <= 768
+      isMobileOrPortrait()
     ) {
 
       if (sidebar) {
@@ -2784,7 +2792,7 @@
           "closed"
         ) ||
         (
-          window.innerWidth <= 768 &&
+          isMobileOrPortrait() &&
           !sidebar.classList.contains(
             "open"
           )
@@ -5367,8 +5375,7 @@ ${webpage}`;
           closeMobileSidebar();
 
           if (
-            window.innerWidth >=
-            769
+            !isMobileOrPortrait()
           ) {
 
             closeSidebar();
