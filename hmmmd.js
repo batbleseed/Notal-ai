@@ -11,7 +11,7 @@
   // ============================================================
 
   const GOOGLE_CLIENT_ID =
-    "524364273952-7gqtr9pdujlahhbt3b35p6p9be369gh0.apps.googleusercontent.com";
+    "1095533104859-5lfcn2qimhdjlk94pccrpaja5g434dpt.apps.googleusercontent.com";
 
   // ============================================================
   // CONFIGURATION
