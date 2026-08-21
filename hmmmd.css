@@ -457,6 +457,24 @@ body.focus-mode .input-container{padding-left:min(16vw,12rem);padding-right:min(
 .avatar-preset-btn.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); transform: scale(1.1); }
 .avatar-preset-btn img { width: 100%; height: 100%; object-fit: cover; }
 
+/* Auth Modal Tabs & Elements */
+.auth-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; background: var(--bg); padding: 0.25rem; border-radius: 0.75rem; border: 1px solid var(--border); }
+.auth-tab-btn { flex: 1; padding: 0.55rem 0.5rem; background: transparent; border: none; border-radius: 0.55rem; color: var(--text2); font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.15s ease; }
+.auth-tab-btn:hover { color: var(--text); }
+.auth-tab-btn.active { background: var(--bg2); color: var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.auth-tab-pane { display: none; flex-direction: column; }
+.auth-tab-pane.active { display: flex; }
+.auth-input-group { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.auth-input-group label { font-size: 0.76rem; font-weight: 600; color: var(--text2); }
+.auth-input-group input { width: 100%; padding: 0.65rem 0.8rem; border: 1.5px solid var(--border); border-radius: 0.75rem; background: var(--bg); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.15s ease; }
+.auth-input-group input:focus { border-color: var(--accent); }
+.auth-divider-line { display: flex; align-items: center; margin: 1rem 0; color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.auth-divider-line::before, .auth-divider-line::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.auth-divider-line span { padding: 0 0.75rem; }
+.google-brand-btn { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 0.75rem; background: var(--bg); color: var(--text); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.65rem; transition: all 0.15s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+.google-brand-btn:hover { background: var(--bg-hover); border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.google-brand-btn img { width: 1.15rem; height: 1.15rem; }
+
 /* Image viewer */
 .image-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:3rem;z-index:700}
 .image-lightbox.show{display:flex}

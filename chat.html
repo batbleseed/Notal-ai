@@ -15,44 +15,120 @@
   <div class="mobile-preview-overlay" id="mobilePreviewOverlay"></div>
   <input type="file" id="fileUploadInput" style="display:none;" multiple accept="image/*,.pdf,.txt,.js,.py,.html,.css,.json,.md">
 
-  <!-- ===== PROFILE MODAL ===== -->
+  <!-- ===== AUTH & PROFILE MODAL ===== -->
   <div class="settings-modal hidden" id="profileModal" style="z-index: 1000;">
     <div class="settings-panel" style="max-width: 440px;">
       <div class="settings-header">
         <button class="settings-close-btn" id="closeProfileModalBtn"><i class="fas fa-arrow-left"></i></button>
-        <h2 id="profileModalTitle">User Profile & Account</h2>
+        <h2 id="profileModalTitle">Sign In & Profile</h2>
       </div>
       <div class="settings-content" style="padding: 1.25rem;">
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;gap:0.5rem;">
-          <div id="modalAvatarPreview" style="width:4.5rem;height:4.5rem;border-radius:50%;background:var(--accent);color:var(--accent-contrast);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;border:2px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-            <i class="fas fa-user"></i>
+        
+        <!-- Auth Tabs -->
+        <div class="auth-tabs" id="authTabs">
+          <button type="button" class="auth-tab-btn active" data-tab="google" id="tabBtnGoogle">
+            <i class="fab fa-google"></i> Google
+          </button>
+          <button type="button" class="auth-tab-btn" data-tab="email" id="tabBtnEmail">
+            <i class="fas fa-envelope"></i> Email
+          </button>
+          <button type="button" class="auth-tab-btn" data-tab="profile" id="tabBtnProfile">
+            <i class="fas fa-user-pen"></i> Profile
+          </button>
+        </div>
+
+        <!-- TAB 1: GOOGLE SIGN IN -->
+        <div class="auth-tab-pane active" id="paneGoogle">
+          <div style="text-align:center;margin-bottom:1.25rem;">
+            <div style="width:3.5rem;height:3.5rem;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 0.75rem;border:1px solid var(--border);color:var(--accent);">
+              <i class="fab fa-google"></i>
+            </div>
+            <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:0.35rem;">Sign In with Google</h3>
+            <p style="font-size:0.8rem;color:var(--text2);line-height:1.4;">Access all models, sync conversations and settings automatically with your Google account.</p>
           </div>
-          <span style="font-size:0.8rem;color:var(--text2);">Choose your avatar and display name</span>
-        </div>
 
-        <div style="margin-bottom:1.2rem;">
-          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.5rem;">Preset Avatars</label>
-          <div id="avatarPresetsList" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;"></div>
-        </div>
+          <div id="gsiButtonContainer" style="display:flex;justify-content:center;margin-bottom:0.75rem;min-height:44px;"></div>
 
-        <div class="settings-input-item" style="margin-bottom:1rem;padding:0;">
-          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.3rem;">Display Name</label>
-          <input type="text" id="profileNameInput" placeholder="e.g. Batbleseed" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid var(--border);border-radius:0.75rem;background:var(--bg);color:var(--text);font-size:0.9rem;">
-        </div>
-
-        <div class="settings-input-item" style="margin-bottom:1.25rem;padding:0;">
-          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.3rem;">Custom Avatar Image URL (Optional)</label>
-          <input type="url" id="profileAvatarUrlInput" placeholder="https://... direct image link" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid var(--border);border-radius:0.75rem;background:var(--bg);color:var(--text);font-size:0.85rem;">
-        </div>
-
-        <div style="display:flex;gap:0.6rem;">
-          <button id="saveProfileModalBtn" style="flex:1;padding:0.75rem;background:var(--accent);color:var(--accent-contrast);border:none;border-radius:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
-            <i class="fas fa-check"></i> Save & Log In
+          <button type="button" class="google-brand-btn" id="googleDirectBtn">
+            <img src="https://www.google.com/favicon.ico" alt="Google">
+            <span>Continue with Google One-Tap</span>
           </button>
-          <button id="quickGuestLoginBtn" type="button" style="padding:0.75rem 1rem;background:var(--bg-hover);border:1.5px solid var(--border);border-radius:0.75rem;color:var(--text);font-size:0.85rem;font-weight:500;cursor:pointer;">
-            Reset Guest
+
+          <div class="auth-divider-line"><span>or enter email</span></div>
+
+          <button type="button" id="switchToEmailTabBtn" style="width:100%;padding:0.7rem;background:var(--bg-hover);border:1px solid var(--border);border-radius:0.75rem;color:var(--text);font-size:0.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+            <i class="fas fa-envelope"></i> Sign in with Email & Password
           </button>
         </div>
+
+        <!-- TAB 2: EMAIL SIGN IN / REGISTER -->
+        <div class="auth-tab-pane" id="paneEmail">
+          <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+            <h3 id="emailFormHeader" style="font-size:1rem;font-weight:700;">Account Sign In</h3>
+            <button type="button" id="authModeToggleBtn" style="background:none;border:none;color:var(--accent);font-size:0.8rem;font-weight:600;cursor:pointer;">Need an account? Register</button>
+          </div>
+
+          <div class="auth-input-group" id="registerNameGroup" style="display:none;">
+            <label for="authNameInput">Full Name</label>
+            <input type="text" id="authNameInput" placeholder="Your name (e.g. Batbleseed)">
+          </div>
+
+          <div class="auth-input-group">
+            <label for="authEmailInput">Email Address</label>
+            <input type="email" id="authEmailInput" placeholder="name@example.com" required autocomplete="email">
+          </div>
+
+          <div class="auth-input-group">
+            <label for="authPasswordInput">Password</label>
+            <input type="password" id="authPasswordInput" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+
+          <button type="button" id="emailAuthSubmitBtn" style="width:100%;margin-top:0.5rem;padding:0.75rem;background:var(--accent);color:var(--accent-contrast);border:none;border-radius:0.75rem;font-weight:600;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+            <i class="fas fa-right-to-bracket"></i> <span id="emailAuthBtnText">Sign In</span>
+          </button>
+
+          <div style="margin-top:0.75rem;display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text2);">
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+              <input type="checkbox" id="rememberMeCheckbox" checked> Remember me
+            </label>
+            <span id="quickFillDemoBtn" style="color:var(--accent);cursor:pointer;">Quick Fill Demo</span>
+          </div>
+        </div>
+
+        <!-- TAB 3: PROFILE CUSTOMIZATION -->
+        <div class="auth-tab-pane" id="paneProfile">
+          <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;gap:0.5rem;">
+            <div id="modalAvatarPreview" style="width:4.5rem;height:4.5rem;border-radius:50%;background:var(--accent);color:var(--accent-contrast);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;border:2px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+              <i class="fas fa-user"></i>
+            </div>
+            <span style="font-size:0.8rem;color:var(--text2);">Choose your avatar and display name</span>
+          </div>
+
+          <div style="margin-bottom:1.2rem;">
+            <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.5rem;">Preset Avatars</label>
+            <div id="avatarPresetsList" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;"></div>
+          </div>
+
+          <div class="auth-input-group">
+            <label for="profileNameInput">Display Name</label>
+            <input type="text" id="profileNameInput" placeholder="e.g. Batbleseed">
+          </div>
+
+          <div class="auth-input-group" style="margin-bottom:1.25rem;">
+            <label for="profileAvatarUrlInput">Custom Avatar Image URL (Optional)</label>
+            <input type="url" id="profileAvatarUrlInput" placeholder="https://... direct image link">
+          </div>
+
+          <div style="display:flex;gap:0.6rem;">
+            <button id="saveProfileModalBtn" style="flex:1;padding:0.75rem;background:var(--accent);color:var(--accent-contrast);border:none;border-radius:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
+              <i class="fas fa-check"></i> Save Profile
+            </button>
+            <button id="quickGuestLoginBtn" type="button" style="padding:0.75rem 1rem;background:var(--bg-hover);border:1.5px solid var(--border);border-radius:0.75rem;color:var(--text);font-size:0.85rem;font-weight:500;cursor:pointer;">
+              Reset
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -458,6 +534,7 @@
     </div>
   </section>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="notal-max.js" defer></script>
 </body>
 </html>

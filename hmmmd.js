@@ -5774,7 +5774,7 @@ ${webpage}`;
 }
 
   // ============================================================
-  // USER PROFILE & AUTHENTICATION
+  // USER PROFILE & AUTHENTICATION (Google OAuth + Email + Profile)
   // ============================================================
 
   const AVATAR_PRESETS = [
@@ -5811,6 +5811,89 @@ ${webpage}`;
   ];
 
   let selectedAvatarUrl = "";
+  let isRegisterMode = false;
+
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function handleGoogleCredential(response) {
+    try {
+      if (!response || !response.credential) {
+        throw new Error("Google credential missing");
+      }
+      const payload = parseJwt(response.credential);
+      if (!payload) throw new Error("Invalid JWT token");
+
+      googleUser = {
+        id: payload.sub || ("google_" + Date.now()),
+        name: payload.name || payload.email || "Google User",
+        email: payload.email || "",
+        picture: payload.picture || AVATAR_PRESETS[0].url,
+        authMethod: "google",
+        updatedAt: Date.now()
+      };
+
+      localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
+      localStorage.setItem("notal_user", JSON.stringify(googleUser));
+      updateUserUI();
+      closeProfileModal();
+      toast(`Signed in as ${googleUser.name}`);
+    } catch (err) {
+      console.error("Google credential error:", err);
+      toast("Google sign-in completed fallback");
+    }
+  }
+  window.handleGoogleCredential = handleGoogleCredential;
+
+  function initGoogleAuth() {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+
+        const container = $("gsiButtonContainer");
+        if (container) {
+          container.innerHTML = "";
+          google.accounts.id.renderButton(container, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "rectangular",
+            text: "signin_with",
+            logo_alignment: "left",
+            width: 280
+          });
+        }
+      } catch (err) {
+        console.warn("GSI init warning:", err);
+      }
+    } else {
+      setTimeout(initGoogleAuth, 600);
+    }
+  }
+
+  function setAuthTab(tabName) {
+    document.querySelectorAll(".auth-tab-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.tab === tabName);
+    });
+    $("paneGoogle")?.classList.toggle("active", tabName === "google");
+    $("paneEmail")?.classList.toggle("active", tabName === "email");
+    $("paneProfile")?.classList.toggle("active", tabName === "profile");
+  }
 
   function updateModalAvatarPreview(url) {
     const preview = $("modalAvatarPreview");
@@ -5822,9 +5905,11 @@ ${webpage}`;
     }
   }
 
-  function openProfileModal() {
+  function openProfileModal(defaultTab = "google") {
     const modal = $("profileModal");
     if (!modal) return;
+
+    setAuthTab(defaultTab);
 
     const nameInput = $("profileNameInput");
     const urlInput = $("profileAvatarUrlInput");
@@ -5868,12 +5953,83 @@ ${webpage}`;
       };
     }
 
+    initGoogleAuth();
     modal.classList.remove("hidden");
-    if (nameInput) setTimeout(() => nameInput.focus(), 50);
   }
 
   function closeProfileModal() {
     $("profileModal")?.classList.add("hidden");
+  }
+
+  function handleEmailAuth() {
+    const email = $("authEmailInput")?.value.trim().toLowerCase();
+    const password = $("authPasswordInput")?.value.trim();
+    const name = $("authNameInput")?.value.trim() || (email ? email.split("@")[0] : "User");
+
+    if (!email || !email.includes("@")) {
+      toast("Please enter a valid email address");
+      $("authEmailInput")?.focus();
+      return;
+    }
+    if (!password || password.length < 4) {
+      toast("Password must be at least 4 characters");
+      $("authPasswordInput")?.focus();
+      return;
+    }
+
+    let registeredUsers = JSON.parse(localStorage.getItem("notal_registered_users") || "[]");
+    let existingUser = registeredUsers.find(u => u.email && u.email.toLowerCase() === email);
+
+    if (isRegisterMode) {
+      if (existingUser) {
+        toast("Account already exists with this email. Logging in...");
+      } else {
+        existingUser = {
+          id: "email_" + btoa(email).replace(/=/g, "").slice(0, 12),
+          name: name,
+          email: email,
+          password: password,
+          picture: AVATAR_PRESETS[Math.floor(Math.random() * AVATAR_PRESETS.length)].url,
+          authMethod: "email",
+          createdAt: Date.now()
+        };
+        registeredUsers.push(existingUser);
+        localStorage.setItem("notal_registered_users", JSON.stringify(registeredUsers));
+      }
+    } else {
+      if (existingUser && existingUser.password && existingUser.password !== password) {
+        toast("Incorrect password for this email");
+        return;
+      }
+      if (!existingUser) {
+        existingUser = {
+          id: "email_" + btoa(email).replace(/=/g, "").slice(0, 12),
+          name: name,
+          email: email,
+          picture: AVATAR_PRESETS[0].url,
+          authMethod: "email",
+          createdAt: Date.now()
+        };
+        registeredUsers.push(existingUser);
+        localStorage.setItem("notal_registered_users", JSON.stringify(registeredUsers));
+      }
+    }
+
+    googleUser = {
+      id: existingUser.id,
+      name: existingUser.name || name,
+      email: existingUser.email,
+      picture: existingUser.picture || AVATAR_PRESETS[0].url,
+      authMethod: "email",
+      updatedAt: Date.now()
+    };
+
+    localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
+    localStorage.setItem("notal_user", JSON.stringify(googleUser));
+
+    updateUserUI();
+    closeProfileModal();
+    toast(`Welcome, ${googleUser.name}!`);
   }
 
   function saveProfile() {
@@ -5893,7 +6049,9 @@ ${webpage}`;
       id: googleUser?.id || "user_" + Date.now(),
       name: name,
       email: googleUser?.email || (name.toLowerCase().replace(/\s+/g, '') + "@notal.ai"),
-      picture: picture
+      picture: picture,
+      authMethod: googleUser?.authMethod || "custom",
+      updatedAt: Date.now()
     };
 
     localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
@@ -5901,7 +6059,7 @@ ${webpage}`;
 
     updateUserUI();
     closeProfileModal();
-    toast(`Logged in as ${googleUser.name}`);
+    toast(`Profile updated for ${googleUser.name}`);
   }
 
   function signOutGoogle() {
@@ -5912,15 +6070,71 @@ ${webpage}`;
     toast("Signed out");
   }
 
+  // Bind tab switchers
+  $("tabBtnGoogle")?.addEventListener("click", () => setAuthTab("google"));
+  $("tabBtnEmail")?.addEventListener("click", () => setAuthTab("email"));
+  $("tabBtnProfile")?.addEventListener("click", () => setAuthTab("profile"));
+  $("switchToEmailTabBtn")?.addEventListener("click", () => setAuthTab("email"));
+
+  // Google Direct trigger
+  $("googleDirectBtn")?.addEventListener("click", () => {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        google.accounts.id.prompt();
+      } catch (e) {
+        setAuthTab("email");
+      }
+    } else {
+      toast("Connecting to Google Services...");
+      initGoogleAuth();
+    }
+  });
+
+  // Email form toggle & submit
+  $("authModeToggleBtn")?.addEventListener("click", () => {
+    isRegisterMode = !isRegisterMode;
+    const header = $("emailFormHeader");
+    const nameGroup = $("registerNameGroup");
+    const btnText = $("emailAuthBtnText");
+    const toggleBtn = $("authModeToggleBtn");
+
+    if (isRegisterMode) {
+      if (header) header.textContent = "Create New Account";
+      if (nameGroup) nameGroup.style.display = "flex";
+      if (btnText) btnText.textContent = "Create Account";
+      if (toggleBtn) toggleBtn.textContent = "Already have an account? Sign In";
+    } else {
+      if (header) header.textContent = "Account Sign In";
+      if (nameGroup) nameGroup.style.display = "none";
+      if (btnText) btnText.textContent = "Sign In";
+      if (toggleBtn) toggleBtn.textContent = "Need an account? Register";
+    }
+  });
+
+  $("emailAuthSubmitBtn")?.addEventListener("click", handleEmailAuth);
+  $("authPasswordInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleEmailAuth();
+  });
+  $("authEmailInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") $("authPasswordInput")?.focus();
+  });
+
+  $("quickFillDemoBtn")?.addEventListener("click", () => {
+    if ($("authEmailInput")) $("authEmailInput").value = "batbleseed@gmail.com";
+    if ($("authPasswordInput")) $("authPasswordInput").value = "password123";
+    if ($("authNameInput")) $("authNameInput").value = "Batbleseed";
+    toast("Demo credentials filled in");
+  });
+
   // Bind profile triggers
-  $("googleSigninBtn")?.addEventListener("click", openProfileModal);
+  $("googleSigninBtn")?.addEventListener("click", () => openProfileModal("google"));
   $("profileSignInItem")?.addEventListener("click", () => {
     $("profileDropdown")?.classList.remove("show");
-    openProfileModal();
+    openProfileModal("google");
   });
   $("profileEditNameItem")?.addEventListener("click", () => {
     $("profileDropdown")?.classList.remove("show");
-    openProfileModal();
+    openProfileModal("profile");
   });
   $("profileSignOutItem")?.addEventListener("click", () => {
     $("profileDropdown")?.classList.remove("show");
@@ -5964,7 +6178,7 @@ ${webpage}`;
   window.addEventListener("storage", (e) => {
     if (e.key === "notal_google_user" || e.key === "notal_user") {
       try {
-        googleUser = JSON.parse(localStorage.getItem("notal_google_user") || "null");
+        googleUser = JSON.parse(localStorage.getItem("notal_google_user") || localStorage.getItem("notal_user") || "null");
       } catch (err) {
         googleUser = null;
       }
