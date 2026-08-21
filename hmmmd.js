@@ -6,7 +6,7 @@
   }
 
   // ============================================================
-  // Notal AI - hmmmd.js hi
+  // Notal AI - hmmmd.js
   // PART 1/3
   // ============================================================
 
@@ -723,43 +723,42 @@
   // ============================================================
 
   function updateUserUI() {
+    const signIn = $("sidebarGoogleSignin");
+    const profile = $("sidebarUserProfile");
+    const settingsName = $("settingsProfileName");
+    const settingsAvatar = $("settingsProfileAvatar");
+    const signInItem = $("profileSignInItem");
+    const signOutItem = $("profileSignOutItem");
 
-    const signIn =
-      $("sidebarGoogleSignin");
-
-    const profile =
-      $("sidebarUserProfile");
-
-    if (googleUser) {
-
-      if (signIn)
-        signIn.style.display = "none";
-
+    if (googleUser && googleUser.name) {
+      if (signIn) signIn.style.display = "none";
       if (profile) {
-
         profile.style.display = "flex";
-
-        if ($("sidebarUserAvatar"))
-          $("sidebarUserAvatar").src =
-            googleUser.picture || "";
-
-        if ($("sidebarUserName"))
-          $("sidebarUserName").textContent =
-            googleUser.name || "Google User";
+        if ($("sidebarUserAvatar")) {
+          $("sidebarUserAvatar").src = googleUser.picture || "";
+        }
+        if ($("sidebarUserName")) {
+          $("sidebarUserName").textContent = googleUser.name || "User";
+        }
       }
-
+      if (settingsName) settingsName.textContent = googleUser.name;
+      if (settingsAvatar) {
+        if (googleUser.picture) {
+          settingsAvatar.innerHTML = `<img src="${escapeHtml(googleUser.picture)}" alt="${escapeHtml(googleUser.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        } else {
+          settingsAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+        }
+      }
+      if (signInItem) signInItem.innerHTML = `<i class="fas fa-user-pen"></i> Edit Profile`;
+      if (signOutItem) signOutItem.style.display = "flex";
     } else {
-
-      if (signIn)
-        signIn.style.display = "block";
-
-      if (profile)
-        profile.style.display = "none";
-
-      if (signoutDropdown)
-        signoutDropdown.classList.remove(
-          "show"
-        );
+      if (signIn) signIn.style.display = "block";
+      if (profile) profile.style.display = "none";
+      if (signoutDropdown) signoutDropdown.classList.remove("show");
+      if (settingsName) settingsName.textContent = "Guest User";
+      if (settingsAvatar) settingsAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+      if (signInItem) signInItem.innerHTML = `<i class="fas fa-user-plus"></i> Set Profile & Sign In`;
+      if (signOutItem) signOutItem.style.display = "none";
     }
   }
 
@@ -5774,122 +5773,204 @@ ${webpage}`;
     return text.trim();
 }
 
-  function handleGoogleCredential(
-    response
-  ) {
+  // ============================================================
+  // USER PROFILE & AUTHENTICATION
+  // ============================================================
 
-    try {
+  const AVATAR_PRESETS = [
+    {
+      id: "spark",
+      name: "Indigo Spark",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%236366f1'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g1)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>"
+    },
+    {
+      id: "emerald",
+      name: "Emerald Pro",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2310b981'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g2)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>"
+    },
+    {
+      id: "sunset",
+      name: "Sunset Gold",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23f59e0b'/><stop offset='100%' stop-color='%23ef4444'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g3)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>"
+    },
+    {
+      id: "cyber",
+      name: "Cyber Neon",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g4' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230f172a'/><stop offset='100%' stop-color='%231e293b'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g4)'/><circle cx='40' cy='32' r='14' fill='%2338bdf8'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%2338bdf8'/></svg>"
+    },
+    {
+      id: "violet",
+      name: "Neon Violet",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g5' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23ec4899'/><stop offset='100%' stop-color='%238b5cf6'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g5)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>"
+    },
+    {
+      id: "blue",
+      name: "Ocean Blue",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g6' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%231d4ed8'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g6)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>"
+    }
+  ];
 
-      if (
-        !response ||
-        !response.credential
-      ) {
+  let selectedAvatarUrl = "";
 
-        throw new Error(
-          "Google credential missing"
-        );
-      }
-
-      const payload =
-        parseJwt(
-          response.credential
-        );
-
-      googleUser = {
-
-        id:
-          payload.sub,
-
-        name:
-          payload.name ||
-          payload.email ||
-          "Google User",
-
-        email:
-          payload.email ||
-          "",
-
-        picture:
-          payload.picture ||
-          ""
-      };
-
-      localStorage.setItem(
-        "notal_google_user",
-        JSON.stringify(
-          googleUser
-        )
-      );
-
-      updateUserUI();
-
-      toast(
-        `Welcome, ${googleUser.name}`
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Google sign-in error:",
-        error
-      );
-
-      toast(
-        "Google sign-in failed"
-      );
+  function updateModalAvatarPreview(url) {
+    const preview = $("modalAvatarPreview");
+    if (!preview) return;
+    if (url) {
+      preview.innerHTML = `<img src="${escapeHtml(url)}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      preview.innerHTML = `<i class="fas fa-user"></i>`;
     }
   }
 
-  window.handleGoogleCredential =
-    handleGoogleCredential;
+  function openProfileModal() {
+    const modal = $("profileModal");
+    if (!modal) return;
 
-  function signOutGoogle() {
+    const nameInput = $("profileNameInput");
+    const urlInput = $("profileAvatarUrlInput");
+    const list = $("avatarPresetsList");
 
-    googleUser =
-      null;
+    const currentName = googleUser?.name || "";
+    const currentPic = googleUser?.picture || AVATAR_PRESETS[0].url;
+    selectedAvatarUrl = currentPic;
 
-    localStorage.removeItem(
-      "notal_google_user"
-    );
+    if (nameInput) nameInput.value = currentName;
+    if (urlInput) urlInput.value = (currentPic && currentPic.startsWith("http") ? currentPic : "");
+
+    updateModalAvatarPreview(selectedAvatarUrl);
+
+    if (list) {
+      list.innerHTML = AVATAR_PRESETS.map(preset => `
+        <button type="button" class="avatar-preset-btn ${preset.url === selectedAvatarUrl ? 'selected' : ''}" data-url="${escapeHtml(preset.url)}" title="${escapeHtml(preset.name)}">
+          <img src="${escapeHtml(preset.url)}" alt="${escapeHtml(preset.name)}">
+        </button>
+      `).join("");
+
+      list.querySelectorAll(".avatar-preset-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          list.querySelectorAll(".avatar-preset-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedAvatarUrl = btn.dataset.url;
+          if (urlInput) urlInput.value = "";
+          updateModalAvatarPreview(selectedAvatarUrl);
+        });
+      });
+    }
+
+    if (urlInput) {
+      urlInput.oninput = () => {
+        const val = urlInput.value.trim();
+        if (val) {
+          selectedAvatarUrl = val;
+          list?.querySelectorAll(".avatar-preset-btn").forEach(b => b.classList.remove("selected"));
+          updateModalAvatarPreview(selectedAvatarUrl);
+        }
+      };
+    }
+
+    modal.classList.remove("hidden");
+    if (nameInput) setTimeout(() => nameInput.focus(), 50);
+  }
+
+  function closeProfileModal() {
+    $("profileModal")?.classList.add("hidden");
+  }
+
+  function saveProfile() {
+    const nameInput = $("profileNameInput");
+    const urlInput = $("profileAvatarUrlInput");
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    let picture = urlInput && urlInput.value.trim() ? urlInput.value.trim() : selectedAvatarUrl;
+    if (!picture) picture = AVATAR_PRESETS[0].url;
+
+    if (!name) {
+      toast("Please enter a display name");
+      return;
+    }
+
+    googleUser = {
+      id: googleUser?.id || "user_" + Date.now(),
+      name: name,
+      email: googleUser?.email || (name.toLowerCase().replace(/\s+/g, '') + "@notal.ai"),
+      picture: picture
+    };
+
+    localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
+    localStorage.setItem("notal_user", JSON.stringify(googleUser));
 
     updateUserUI();
-
-    toast(
-      "Signed out"
-    );
+    closeProfileModal();
+    toast(`Logged in as ${googleUser.name}`);
   }
 
-  if (
-    $("signoutBtn")
-  ) {
-
-    $("signoutBtn")
-      .addEventListener(
-        "click",
-        signOutGoogle
-      );
+  function signOutGoogle() {
+    googleUser = null;
+    localStorage.removeItem("notal_google_user");
+    localStorage.removeItem("notal_user");
+    updateUserUI();
+    toast("Signed out");
   }
 
-  if (
-    $("sidebarUserProfile")
-  ) {
+  // Bind profile triggers
+  $("googleSigninBtn")?.addEventListener("click", openProfileModal);
+  $("profileSignInItem")?.addEventListener("click", () => {
+    $("profileDropdown")?.classList.remove("show");
+    openProfileModal();
+  });
+  $("profileEditNameItem")?.addEventListener("click", () => {
+    $("profileDropdown")?.classList.remove("show");
+    openProfileModal();
+  });
+  $("profileSignOutItem")?.addEventListener("click", () => {
+    $("profileDropdown")?.classList.remove("show");
+    signOutGoogle();
+  });
+  $("saveProfileModalBtn")?.addEventListener("click", saveProfile);
+  $("closeProfileModalBtn")?.addEventListener("click", closeProfileModal);
+  $("quickGuestLoginBtn")?.addEventListener("click", () => {
+    signOutGoogle();
+    closeProfileModal();
+  });
 
-    $("sidebarUserProfile")
-      .addEventListener(
-        "click",
-        () => {
+  // Settings profile card click -> dropdown toggle
+  $("settingsProfileCard")?.addEventListener("click", (e) => {
+    if (e.target.closest("#profileDropdown")) return;
+    $("profileDropdown")?.classList.toggle("show");
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#settingsProfileCard")) {
+      $("profileDropdown")?.classList.remove("show");
+    }
+  });
 
-          if (
-            signoutDropdown
-          ) {
+  // Sidebar profile dropdown toggle & signout
+  $("userProfileBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("signoutDropdown")?.classList.toggle("show");
+  });
+  $("signoutConfirmBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("signoutDropdown")?.classList.remove("show");
+    signOutGoogle();
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#sidebarUserProfile")) {
+      $("signoutDropdown")?.classList.remove("show");
+    }
+  });
 
-            signoutDropdown.classList.toggle(
-              "show"
-            );
-          }
-        }
-      );
-  }
+  // Storage listener for instantaneous multi-tab and studio.html sync
+  window.addEventListener("storage", (e) => {
+    if (e.key === "notal_google_user" || e.key === "notal_user") {
+      try {
+        googleUser = JSON.parse(localStorage.getItem("notal_google_user") || "null");
+      } catch (err) {
+        googleUser = null;
+      }
+      updateUserUI();
+    }
+  });
 
   // ============================================================
   // KEYBOARD SHORTCUTS

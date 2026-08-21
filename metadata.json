@@ -1,0 +1,6 @@
+{
+  "name": "Notal AI",
+  "description": "Your All-in-One AI Platform - 15+ AI Models, Image Generation, Vision Analysis, Web Browsing, and Code Generation",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

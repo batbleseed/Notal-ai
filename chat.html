@@ -15,6 +15,48 @@
   <div class="mobile-preview-overlay" id="mobilePreviewOverlay"></div>
   <input type="file" id="fileUploadInput" style="display:none;" multiple accept="image/*,.pdf,.txt,.js,.py,.html,.css,.json,.md">
 
+  <!-- ===== PROFILE MODAL ===== -->
+  <div class="settings-modal hidden" id="profileModal" style="z-index: 1000;">
+    <div class="settings-panel" style="max-width: 440px;">
+      <div class="settings-header">
+        <button class="settings-close-btn" id="closeProfileModalBtn"><i class="fas fa-arrow-left"></i></button>
+        <h2 id="profileModalTitle">User Profile & Account</h2>
+      </div>
+      <div class="settings-content" style="padding: 1.25rem;">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;gap:0.5rem;">
+          <div id="modalAvatarPreview" style="width:4.5rem;height:4.5rem;border-radius:50%;background:var(--accent);color:var(--accent-contrast);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;border:2px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+            <i class="fas fa-user"></i>
+          </div>
+          <span style="font-size:0.8rem;color:var(--text2);">Choose your avatar and display name</span>
+        </div>
+
+        <div style="margin-bottom:1.2rem;">
+          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.5rem;">Preset Avatars</label>
+          <div id="avatarPresetsList" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;"></div>
+        </div>
+
+        <div class="settings-input-item" style="margin-bottom:1rem;padding:0;">
+          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.3rem;">Display Name</label>
+          <input type="text" id="profileNameInput" placeholder="e.g. Batbleseed" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid var(--border);border-radius:0.75rem;background:var(--bg);color:var(--text);font-size:0.9rem;">
+        </div>
+
+        <div class="settings-input-item" style="margin-bottom:1.25rem;padding:0;">
+          <label style="font-size:0.75rem;font-weight:600;color:var(--text2);display:block;margin-bottom:0.3rem;">Custom Avatar Image URL (Optional)</label>
+          <input type="url" id="profileAvatarUrlInput" placeholder="https://... direct image link" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid var(--border);border-radius:0.75rem;background:var(--bg);color:var(--text);font-size:0.85rem;">
+        </div>
+
+        <div style="display:flex;gap:0.6rem;">
+          <button id="saveProfileModalBtn" style="flex:1;padding:0.75rem;background:var(--accent);color:var(--accent-contrast);border:none;border-radius:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
+            <i class="fas fa-check"></i> Save & Log In
+          </button>
+          <button id="quickGuestLoginBtn" type="button" style="padding:0.75rem 1rem;background:var(--bg-hover);border:1.5px solid var(--border);border-radius:0.75rem;color:var(--text);font-size:0.85rem;font-weight:500;cursor:pointer;">
+            Reset Guest
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== SETTINGS MODAL ===== -->
   <div class="settings-modal hidden" id="settingsModal">
     <div class="settings-panel">
@@ -30,8 +72,8 @@
           <div class="settings-profile-name" id="settingsProfileName">Guest User</div>
           <div class="settings-profile-arrow"><i class="fas fa-chevron-right"></i></div>
           <div class="profile-dropdown" id="profileDropdown">
-            <div class="profile-dropdown-item" id="profileSignInItem"><i class="fas fa-right-to-bracket"></i> Sign in with Google</div>
-            <div class="profile-dropdown-item" id="profileEditNameItem"><i class="fas fa-pen"></i> Edit display name</div>
+            <div class="profile-dropdown-item" id="profileSignInItem"><i class="fas fa-user-pen"></i> Edit Profile & Sign In</div>
+            <div class="profile-dropdown-item" id="profileEditNameItem"><i class="fas fa-pen"></i> Quick Name Change</div>
             <div class="profile-dropdown-divider"></div>
             <div class="profile-dropdown-item danger" id="profileSignOutItem"><i class="fas fa-right-from-bracket"></i> Sign out</div>
           </div>
@@ -305,7 +347,7 @@
     <div class="sidebar-search"><i class="fas fa-search"></i><input id="chatSearchInput" placeholder="Search conversations..." autocomplete="off"></div>
     <div class="chat-history" id="chatHistory"></div>
     <div class="sidebar-footer">
-      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Sign in</button></div>
+      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn" title="Sign In & User Profile"><i class="fas fa-user-circle"></i> Sign in</button></div>
       <div id="sidebarUserProfile" style="display:none;flex:1;position:relative;">
         <div class="sidebar-user" id="userProfileBtn"><img id="sidebarUserAvatar" src="" alt="U"><span class="sidebar-user-name" id="sidebarUserName"></span></div>
         <div class="signout-dropdown" id="signoutDropdown"><button class="signout-btn" id="signoutConfirmBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></div>
@@ -416,8 +458,6 @@
     </div>
   </section>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
   <script src="notal-max.js" defer></script>
 </body>
 </html>

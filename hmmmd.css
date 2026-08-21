@@ -452,6 +452,11 @@ body.focus-mode .input-container{padding-left:min(16vw,12rem);padding-right:min(
 .suggestion-card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
 .suggestion-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent)}
 
+.avatar-preset-btn { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid var(--border); background: var(--bg2); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.15s ease; overflow: hidden; padding: 0; }
+.avatar-preset-btn:hover { transform: scale(1.1); border-color: var(--accent); }
+.avatar-preset-btn.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); transform: scale(1.1); }
+.avatar-preset-btn img { width: 100%; height: 100%; object-fit: cover; }
+
 /* Image viewer */
 .image-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:3rem;z-index:700}
 .image-lightbox.show{display:flex}

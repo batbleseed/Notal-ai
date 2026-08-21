@@ -675,6 +675,11 @@
       background: white;
     }
 
+    .avatar-preset-btn { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid var(--border); background: var(--bg2); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all 0.15s ease; overflow: hidden; padding: 0; }
+    .avatar-preset-btn:hover { transform: scale(1.1); border-color: var(--accent); }
+    .avatar-preset-btn.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); transform: scale(1.1); }
+    .avatar-preset-btn img { width: 100%; height: 100%; object-fit: cover; }
+
     @media(max-width: 900px) {
       .config-panel { position: fixed; right: 0; z-index: 30; height: calc(100vh - var(--header-height)); top: var(--header-height); }
     }
@@ -712,7 +717,7 @@
     <div class="chat-history" id="chatHistory"></div>
 
     <div class="sidebar-footer">
-      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Sign in</button></div>
+      <div id="sidebarGoogleSignin" style="flex:1;"><button class="google-btn" id="googleSigninBtn" title="Sign In & User Profile"><i class="fas fa-user-circle"></i> Sign in</button></div>
       <div id="sidebarUserProfile" style="display:none;flex:1;position:relative;">
         <div class="sidebar-user" id="userProfileBtn"><img id="sidebarUserAvatar" src="" alt="U"><span class="sidebar-user-name" id="sidebarUserName"></span></div>
         <div class="signout-dropdown" id="signoutDropdown"><button class="signout-btn" id="signoutConfirmBtn"><i class="fas fa-sign-out-alt"></i> Sign out</button></div>
@@ -918,7 +923,42 @@
   </div>
 </div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<div class="modal-backdrop" id="profileModal">
+  <div class="modal" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-circle"></i> User Profile & Sign In</h3>
+      <button class="action-btn" id="closeProfileModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem;gap:0.5rem;">
+        <div id="studioModalAvatarPreview" style="width:4.5rem;height:4.5rem;border-radius:50%;background:var(--accent);color:var(--accent-contrast);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;border:2px solid var(--border);">
+          <i class="fas fa-user"></i>
+        </div>
+        <span style="font-size:0.8rem;color:var(--text2);">Choose your avatar and display name</span>
+      </div>
+
+      <div style="margin-bottom:1.2rem;">
+        <label class="config-label">Preset Avatars</label>
+        <div id="studioAvatarPresetsList" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;"></div>
+      </div>
+
+      <div class="config-group">
+        <label class="config-label">Display Name</label>
+        <input type="text" class="config-input" id="studioProfileNameInput" placeholder="e.g. Batbleseed">
+      </div>
+
+      <div class="config-group">
+        <label class="config-label">Custom Avatar Image URL (Optional)</label>
+        <input type="url" class="config-input" id="studioProfileAvatarUrlInput" placeholder="https://... direct image link">
+      </div>
+
+      <div style="display:flex;gap:0.6rem;margin-top:1rem;">
+        <button class="btn-primary" id="studioSaveProfileBtn" style="flex:1;"><i class="fas fa-check"></i> Save & Sign In</button>
+        <button class="action-btn" id="studioResetGuestBtn" style="padding:0.6rem 1rem;border:1px solid var(--border);border-radius:0.6rem;">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- SCRIPT LOGIC -->
 <script>
@@ -957,66 +997,129 @@
 
     const $ = id => document.getElementById(id);
 
-    function parseJwt(token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-      } catch (e) {
-        return null;
+    const AVATAR_PRESETS = [
+      { id: "spark", name: "Indigo Spark", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%236366f1'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g1)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>" },
+      { id: "emerald", name: "Emerald Pro", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2310b981'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g2)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>" },
+      { id: "sunset", name: "Sunset Gold", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23f59e0b'/><stop offset='100%' stop-color='%23ef4444'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g3)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>" },
+      { id: "cyber", name: "Cyber Neon", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g4' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230f172a'/><stop offset='100%' stop-color='%231e293b'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g4)'/><circle cx='40' cy='32' r='14' fill='%2338bdf8'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%2338bdf8'/></svg>" },
+      { id: "violet", name: "Neon Violet", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g5' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23ec4899'/><stop offset='100%' stop-color='%238b5cf6'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g5)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>" },
+      { id: "blue", name: "Ocean Blue", url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g6' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%231d4ed8'/></linearGradient></defs><rect width='80' height='80' rx='40' fill='url(%23g6)'/><circle cx='40' cy='32' r='14' fill='%23ffffff'/><path d='M20 64 C20 48 30 46 40 46 C50 46 60 48 60 64' fill='%23ffffff'/></svg>" }
+    ];
+
+    let selectedAvatarUrl = "";
+
+    function updateStudioModalAvatarPreview(url) {
+      const preview = $("studioModalAvatarPreview");
+      if (!preview) return;
+      if (url) {
+        preview.innerHTML = `<img src="${url}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        preview.innerHTML = `<i class="fas fa-user"></i>`;
       }
     }
 
-    function handleGoogleCredential(response) {
-      try {
-        const payload = parseJwt(response.credential);
-        if (payload) {
-          googleUser = {
-            id: payload.sub,
-            name: payload.name,
-            email: payload.email,
-            picture: payload.picture || ""
-          };
-          localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
-          updateUserUI();
-        }
-      } catch (e) { console.error(e); }
+    function openProfileModal() {
+      const modal = $("profileModal");
+      if (!modal) return;
+
+      const nameInput = $("studioProfileNameInput");
+      const urlInput = $("studioProfileAvatarUrlInput");
+      const list = $("studioAvatarPresetsList");
+
+      const currentName = googleUser?.name || "";
+      const currentPic = googleUser?.picture || AVATAR_PRESETS[0].url;
+      selectedAvatarUrl = currentPic;
+
+      if (nameInput) nameInput.value = currentName;
+      if (urlInput) urlInput.value = (currentPic && currentPic.startsWith("http") ? currentPic : "");
+
+      updateStudioModalAvatarPreview(selectedAvatarUrl);
+
+      if (list) {
+        list.innerHTML = AVATAR_PRESETS.map(preset => `
+          <button type="button" class="avatar-preset-btn ${preset.url === selectedAvatarUrl ? 'selected' : ''}" data-url="${preset.url}" title="${preset.name}">
+            <img src="${preset.url}" alt="${preset.name}">
+          </button>
+        `).join("");
+
+        list.querySelectorAll(".avatar-preset-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            list.querySelectorAll(".avatar-preset-btn").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedAvatarUrl = btn.dataset.url;
+            if (urlInput) urlInput.value = "";
+            updateStudioModalAvatarPreview(selectedAvatarUrl);
+          });
+        });
+      }
+
+      if (urlInput) {
+        urlInput.oninput = () => {
+          const val = urlInput.value.trim();
+          if (val) {
+            selectedAvatarUrl = val;
+            list?.querySelectorAll(".avatar-preset-btn").forEach(b => b.classList.remove("selected"));
+            updateStudioModalAvatarPreview(selectedAvatarUrl);
+          }
+        };
+      }
+
+      modal.classList.add("show");
+      if (nameInput) setTimeout(() => nameInput.focus(), 50);
     }
-    window.handleGoogleCredential = handleGoogleCredential;
+
+    function closeProfileModal() {
+      $("profileModal")?.classList.remove("show");
+    }
+
+    function saveStudioProfile() {
+      const nameInput = $("studioProfileNameInput");
+      const urlInput = $("studioProfileAvatarUrlInput");
+
+      const name = nameInput ? nameInput.value.trim() : "";
+      let picture = urlInput && urlInput.value.trim() ? urlInput.value.trim() : selectedAvatarUrl;
+      if (!picture) picture = AVATAR_PRESETS[0].url;
+
+      if (!name) {
+        alert("Please enter a display name");
+        return;
+      }
+
+      googleUser = {
+        id: googleUser?.id || "user_" + Date.now(),
+        name: name,
+        email: googleUser?.email || (name.toLowerCase().replace(/\s+/g, '') + "@notal.ai"),
+        picture: picture
+      };
+
+      localStorage.setItem("notal_google_user", JSON.stringify(googleUser));
+      localStorage.setItem("notal_user", JSON.stringify(googleUser));
+
+      updateUserUI();
+      closeProfileModal();
+    }
+
+    function signOutUser() {
+      googleUser = null;
+      localStorage.removeItem("notal_google_user");
+      localStorage.removeItem("notal_user");
+      updateUserUI();
+    }
 
     function updateUserUI() {
       const signIn = $("sidebarGoogleSignin");
       const profile = $("sidebarUserProfile");
-      if (googleUser) {
+      if (googleUser && googleUser.name) {
         if (signIn) signIn.style.display = "none";
         if (profile) {
           profile.style.display = "flex";
           if ($("sidebarUserAvatar")) $("sidebarUserAvatar").src = googleUser.picture || "";
-          if ($("sidebarUserName")) $("sidebarUserName").textContent = googleUser.name || "Google User";
+          if ($("sidebarUserName")) $("sidebarUserName").textContent = googleUser.name || "User";
         }
       } else {
         if (signIn) signIn.style.display = "flex";
         if (profile) profile.style.display = "none";
-      }
-    }
-
-    function initGoogleAuth() {
-      if (window.google && window.google.accounts) {
-        google.accounts.id.initialize({
-          client_id: "524364273952-7gqtr9pdujlahhbt3b35p6p9be369gh0.apps.googleusercontent.com",
-          callback: handleGoogleCredential
-        });
-        const signInBtn = $("googleSigninBtn");
-        if (signInBtn) {
-          signInBtn.addEventListener("click", () => {
-            google.accounts.id.prompt();
-          });
-        }
-      } else {
-        setTimeout(initGoogleAuth, 500);
+        if ($("signoutDropdown")) $("signoutDropdown").classList.remove("show");
       }
     }
 
@@ -1024,7 +1127,6 @@
       if (isDark) document.body.classList.add("theme-dark");
       $("systemInstruction").value = systemInstructionText;
       updateUserUI();
-      initGoogleAuth();
       renderModelDropdown();
       renderHistory();
       renderTemplates();
@@ -1391,7 +1493,15 @@
       $("navTemplates").addEventListener("click", () => $("templatesModal").classList.add("show"));
       $("closeTemplatesModal").addEventListener("click", () => $("templatesModal").classList.remove("show"));
 
-      // Profile user button & signout dropdown
+      // Profile user button & modal bindings
+      $("googleSigninBtn")?.addEventListener("click", openProfileModal);
+      $("closeProfileModal")?.addEventListener("click", closeProfileModal);
+      $("studioSaveProfileBtn")?.addEventListener("click", saveStudioProfile);
+      $("studioResetGuestBtn")?.addEventListener("click", () => {
+        signOutUser();
+        closeProfileModal();
+      });
+
       $("userProfileBtn")?.addEventListener("click", e => {
         e.stopPropagation();
         $("signoutDropdown")?.classList.toggle("show");
@@ -1400,10 +1510,20 @@
         $("signoutDropdown")?.classList.remove("show");
       });
       $("signoutConfirmBtn")?.addEventListener("click", () => {
-        googleUser = null;
-        localStorage.removeItem("notal_google_user");
-        updateUserUI();
+        signOutUser();
         $("signoutDropdown")?.classList.remove("show");
+      });
+
+      // Storage sync with chat.html
+      window.addEventListener("storage", (e) => {
+        if (e.key === "notal_google_user" || e.key === "notal_user") {
+          try {
+            googleUser = JSON.parse(localStorage.getItem("notal_google_user") || "null");
+          } catch (err) {
+            googleUser = null;
+          }
+          updateUserUI();
+        }
       });
 
       // Sliders
